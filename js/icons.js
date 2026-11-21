@@ -30,7 +30,22 @@
     swords: '<path d="M4.200 4.200l9.400 9.400M19.800 4.200l-9.400 9.400"/>',
     close: '<path d="M6 6l12 12M18 6L6 18"/>',
     check: '<path d="M5 12.500l4.500 4.500L19 7.500"/>',
-    chev: '<path d="M9 5l7 7-7 7"/>'
+    chev: '<path d="M9 5l7 7-7 7"/>',
+    chevDown: '<path d="M5 9l7 7 7-7"/>',
+    chevLeft: '<path d="M15 5l-7 7 7 7"/>',
+    chevRight: '<path d="M9 5l7 7-7 7"/>',
+    menu: '<path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17"/>',
+    listEdit: '<path d="M4 6.5h10M4 11.5h7M4 16.5h5"/><path d="M14.5 17.5l5.5-5.5 2 2-5.5 5.5H14.5z"/>',
+    trash: '<path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13.5h9l1-13.5"/>',
+    copy: '<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5.5a1.5 1.5 0 00-1.5-1.5H5.5A1.5 1.5 0 004 5.5V14a1.5 1.5 0 001.5 1.5h3"/>',
+    hex: '<path d="M12 2.8l7.8 4.5v9.4L12 21.2l-7.8-4.5V7.3z"/>',
+    clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+    doc: '<path d="M6.5 3.5h7.5l4.5 4.5v12.5h-12z"/><path d="M14 3.5V8h4.5M9 12.5h6M9 16h6"/>',
+    pin: '<path d="M9 3.5h6l-1 5.5 3 3.5H7l3-3.5z"/><path d="M12 12.5v8"/>',
+    pinOff: '<path d="M9 3.5h6l-1 5.5 3 3.5H7l3-3.5z"/><path d="M12 12.5v8M3.5 3.5l17 17"/>',
+    map: '<path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    print: '<path d="M7 8V3.5h10V8"/><rect x="3.5" y="8" width="17" height="8.5" rx="1.5"/><path d="M7 13.5h10v7H7z"/>',
+    book: '<path d="M4 4.5c2.6-.8 5.2-.6 8 1.2 2.8-1.8 5.4-2 8-1.2V19c-2.6-.8-5.2-.6-8 1.2-2.8-1.8-5.4-2-8-1.2z"/><path d="M12 5.7v14.2"/>'
   };
   OB.icon = (name, cls) => `<svg class="ico ${cls || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`;
   OB.ICON_NAMES = Object.keys(P);

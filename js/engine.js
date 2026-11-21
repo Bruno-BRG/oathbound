@@ -6,7 +6,7 @@
   const { clamp, rint, uid } = OB;
 
   OB.ui = {
-    tab: 'sheet', add: 0, open: {}, moveFilter: '', moveCat: 'all',
+    tab: 'character', drawer: true, menu: false, dsec: {}, hex: null, journalQ: '', add: 0, open: {}, moveFilter: '', moveCat: 'all',
     oracleFilter: '', oracleGroup: 'all', diceOpen: false, hudOpen: true,
     nameHeritage: '', foeFilter: '', creationOpen: true
   };
@@ -29,7 +29,7 @@
     c.log.unshift(entry);
     if (c.log.length > 80) c.log.length = 80;
     OB.save();
-    if (window.innerWidth < 1100 && entry.kind !== 'note') OB.ui.diceOpen = true;
+    if (window.innerWidth < 1280 && entry.kind !== 'note') { OB.ui.drawer = true; OB.ui.open['dsec:dice'] = true; }
     OB.refresh && OB.refresh();
     OB.flashLog && OB.flashLog();
     return entry;

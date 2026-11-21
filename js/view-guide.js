@@ -137,29 +137,4 @@
       </div>`;
   };
 
-  /* ---------- Journal ---------- */
-  OB.v.journal = function () {
-    const c = OB.char();
-    c.truths = c.truths || {};
-    const truths = OB.TRUTHS.map(t => {
-      const st = c.truths[t.key] || {};
-      return `<article class="card truth">
-        <div class="sec-head"><h3>${E(t.name)}</h3><button type="button" class="btn small" data-act="rollTruth" data-key="${t.key}">Roll d100</button></div>
-        <div class="truth-opts">${t.opts.map((o, i) => `<label class="opt ${st.pick === i ? 'on' : ''}"><input type="radio" name="tr-${t.key}" value="${i}" ${st.pick === i ? 'checked' : ''} data-act-change="pickTruth" data-key="${t.key}"><span class="rng">${['1–33', '34–66', '67–100'][i]}</span><span>${E(o[0])}</span></label>`).join('')}</div>
-        ${st.pick != null ? `<p class="quest"><strong>Quest starter.</strong> ${E(t.opts[st.pick][1])} <button type="button" class="btn small ghost" data-act="truthNote" data-key="${t.key}">Add to journal</button></p>` : ''}
-        ${F.area(`truths.${t.key}.custom`, st.custom || '', { rows: 2, ph: 'Make your own truth, or add notes…' })}
-      </article>`;
-    }).join('');
-    return `${OB.banner('camp', 'Journal', 'Your session log and the truths of your Amarin.')}
-      <section>
-        ${OB.sectionHead('Session log', '<button type="button" class="btn small primary" data-act="addEntry">+ New entry</button>')}
-        ${c.journal.map(j => `<article class="card entry">
-          <div class="entry-head">${F.text(`journal#${j.id}.title`, j.title, { ph: 'Title', cls: 'entry-title', label: 'Entry title' })}${F.text(`journal#${j.id}.date`, j.date, { ph: 'Date / session', cls: 'entry-date', label: 'Date' })}<button type="button" class="icon-btn" data-act="delEntry" data-id="${j.id}" aria-label="Delete entry">×</button></div>
-          ${F.area(`journal#${j.id}.text`, j.text, { rows: 5, ph: 'What happened…' })}</article>`).join('') || '<p class="muted empty">No entries yet.</p>'}
-      </section>
-      <section>
-        ${OB.sectionHead('Your Truths', '<span class="muted small">For each category, choose one of three options or roll d100.</span>')}
-        <div class="truth-grid">${truths}</div>
-      </section>`;
-  };
 })(window.OB);
