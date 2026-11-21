@@ -6,7 +6,7 @@
   'use strict';
   const E = OB.esc;
   const $ = (s, r) => (r || document).querySelector(s);
-  const WIDE = () => window.matchMedia('(min-width: 1280px)').matches;
+  const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
@@ -30,13 +30,12 @@
     if (lastTab !== OB.ui.tab) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); lastTab = OB.ui.tab; }
   }
 
-  const isOpen = k => (OB.ui.open['dsec:' + k] != null ? !!OB.ui.open['dsec:' + k] : k === 'dice');
+  const isOpen = k => (OB.ui.open['dsec:' + k] != null ? !!OB.ui.open['dsec:' + k] : k === 'oracles');
   function renderDrawer() {
     const sec = (key, title, icon, html) => `<details class="dsec dsec-${key}" data-key="dsec:${key}" ${isOpen(key) ? 'open' : ''}>
-      <summary><span class="dsec-t">${OB.icon(icon)}<span>${title}</span></span>${OB.icon('chevDown', 'chev')}</summary>
+      <summary><span class="dsec-t">${title}</span>${OB.icon('chevDown', 'chev')}</summary>
       <div class="dsec-b">${html}</div></details>`;
     $('#drawer-body').innerHTML = [
-      sec('dice', 'Dice', 'dice', '<div id="dice" class="dice"></div>'),
       sec('oracles', 'Oracles', 'oracle', OB.drawerOracles()),
       sec('moves', 'Moves', 'moves', OB.drawerMoves()),
       sec('journal', 'Journal', 'listEdit', OB.drawerJournal())
@@ -46,25 +45,26 @@
 
   function renderMenu() {
     const d = OB.store.data;
+    const item = (act, icon, label) => `<button type="button" class="mitem" data-act="${act}">${OB.icon(icon)}<span>${label}</span></button>`;
     $('#menu-body').innerHTML = `
-      <div class="mhead"><h2>Campaigns</h2><button type="button" class="ib" data-act="closeMenu" aria-label="Close menu">${OB.icon('close')}</button></div>
-      <div class="mlist">${d.chars.map(x => `<div class="mrow ${x.id === d.active ? 'on' : ''}">
-          <button type="button" class="mpick" data-act="selectChar" data-id="${x.id}">
-            <span class="mname">${E(x.campaignName || 'New Campaign - ' + (x.name || 'Unnamed'))}</span>
-            <small>${E([x.heritage, x.cls].filter(Boolean).join(' · ') || 'No class yet')}</small></button>
+      <div class="mcamps">${d.chars.map(x => `<div class="mrow ${x.id === d.active ? 'on' : ''}">
+          <button type="button" class="mpick" data-act="selectChar" data-id="${x.id}">${E(x.campaignName || 'New Campaign - ' + (x.name || 'Unnamed'))}</button>
           <button type="button" class="ib sm" data-act="delChar" data-id="${x.id}" aria-label="Delete campaign">${OB.icon('trash')}</button>
         </div>`).join('')}</div>
-      <button type="button" class="btn wide primary" data-act="newChar">${OB.icon('plus')}New campaign</button>
-      <div class="msec">Campaign data</div>
-      <button type="button" class="mbtn" data-act="exportOne">${OB.icon('download')}Export campaign data</button>
-      <button type="button" class="mbtn" data-act="importFile">${OB.icon('upload')}Load campaign data</button>
-      <button type="button" class="mbtn" data-act="exportJournal">${OB.icon('listEdit')}Export journal (.md)</button>
-      <button type="button" class="mbtn" data-act="exportAll">${OB.icon('download')}Export all campaigns</button>
-      <button type="button" class="mbtn" data-act="dupChar">${OB.icon('copy')}Duplicate campaign</button>
-      <button type="button" class="mbtn" data-act="printSheet">${OB.icon('print')}Print character</button>
-      <div class="msec">Accent</div>
-      <div class="swatches">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
-      <div class="mfoot"><span id="save-badge"></span></div>`;
+      ${item('newChar', 'plus', 'New Campaign')}
+      <hr>
+      ${item('exportOne', 'download', 'Export Campaign Data')}
+      ${item('importFile', 'upload', 'Load Campaign Data')}
+      <hr>
+      ${item('exportAll', 'download', 'Export All Campaigns')}
+      ${item('exportJournal', 'download', 'Export Journal')}
+      <hr>
+      ${OB.canInstall ? item('installApp', 'download', 'Install App') : ''}
+      ${item('diceStyle', 'dice', 'Dice Style (3D)')}
+      ${item('dupChar', 'copy', 'Duplicate Campaign')}
+      ${item('printSheet', 'print', 'Print Character')}
+      <div class="swatches" aria-label="Accent colour">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
+      <div class="mfoot"><span id="save-badge"></span><br>Oathbound by Bruno Rocha Guimarães, based on Ironsworn by Shawn Tomkin. CC BY-NC-SA 4.0.</div>`;
   }
 
   OB.updateSaveBadge = function () {
@@ -83,6 +83,7 @@
     renderTabs(); renderView(); renderDrawer(); renderMenu();
     $('#drawer-fab').innerHTML = OB.icon(OB.ui.drawer ? 'chevRight' : 'chevLeft');
     document.body.classList.toggle('drawer-open', !!OB.ui.drawer);
+    document.body.classList.toggle('dice-open', !!OB.ui.dicePanel);
     document.body.classList.toggle('menu-open', !!OB.ui.menu);
     $('#menu').classList.toggle('open', !!OB.ui.menu);
     OB.updateSaveBadge();
@@ -231,7 +232,15 @@
       requestAnimationFrame(() => { const t = document.getElementById('mv-' + OB.slug(name)); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
     },
     toggleDrawer() { OB.ui.drawer = !OB.ui.drawer; OB.refresh(); },
-    openDsec(el) { OB.openDrawer(el.dataset.s); },
+    openDsec(el) { if (el.dataset.s === 'dice') return A.toggleDice(); OB.openDrawer(el.dataset.s); },
+    installApp() {
+      setMenu(false);
+      const ev = OB.installEvt; if (!ev) return;
+      ev.prompt(); ev.userChoice.finally(() => { OB.installEvt = null; OB.canInstall = false; });
+    },
+    diceStyle() { setMenu(false); OB.dice3d.openSettings(); },
+    toggleDice() { OB.ui.dicePanel = !OB.ui.dicePanel; document.body.classList.toggle('dice-open', !!OB.ui.dicePanel); },
+    copyOracle(el) { const e = OB.rollOracle(el.dataset.key); const t = e.parts.map(p => p.text).join(' '); if (navigator.clipboard) navigator.clipboard.writeText(t).catch(() => {}); OB.toast('Copied: ' + t); },
     menu() { setMenu(!OB.ui.menu); },
     closeMenu() { setMenu(false); },
     palette() { setMenu(false); OB.palette(); },
@@ -474,7 +483,7 @@
     OB.FOES.forEach(g => g.list.forEach(f => items.push({ k: 'Foe', n: f[0], h: f[1] + ' · add to Fights', run: () => OB.addFoe(f[0], f[1]) })));
     [['New vow', () => trackModal('oath')], ['New journey', () => trackModal('journey')], ['Add bond', () => bondModal()],
       ['Add asset', () => assetModal()], ['Roll d100', () => A.rollD100()], ['Export campaign JSON', () => OB.exportData(false)], ['Load campaign JSON', () => $('#file-in').click()],
-      ['New campaign', () => A.newChar()], ['Open journal', () => OB.openDrawer('journal')]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
+      ['New campaign', () => A.newChar()], ['Dice style (3D)', () => OB.dice3d.openSettings()], ['Open journal', () => OB.openDrawer('journal')]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
     let sel = 0, list = items;
     const close = () => { const m = document.getElementById('modal'); if (m) m.remove(); };
     const draw = m => {
@@ -501,9 +510,9 @@
   };
 
   /* ---------- theme ---------- */
-  OB.THEMES = [['gold', 'Gold'], ['ember', 'Ember'], ['frost', 'Frost'], ['verdant', 'Verdant'], ['arcane', 'Arcane']];
+  OB.THEMES = [['frost', 'Steel'], ['gold', 'Gold'], ['ember', 'Ember'], ['verdant', 'Verdant'], ['arcane', 'Arcane']];
   OB.applyTheme = function () {
-    let t = 'gold'; try { t = localStorage.getItem('oathbound.theme') || 'gold'; } catch (e) { /* storage blocked */ }
+    let t = 'frost'; try { t = localStorage.getItem('oathbound.theme') || 'frost'; } catch (e) { /* storage blocked */ }
     document.documentElement.dataset.theme = t;
   };
   OB.setTheme = function (t) {
@@ -634,8 +643,7 @@
           <button type="button" class="ib" data-act="menu" aria-label="Campaigns and data" title="Campaigns and data">${OB.icon('menu')}</button>
           <div class="ttl"><span class="brand">OATHBOUND</span><span class="bar" aria-hidden="true"></span><span class="sub">Waystone</span></div>
           <div class="tr">
-            <button type="button" class="ib" data-act="search" title="Search (Ctrl+K)" aria-label="Search">${OB.icon('search')}</button>
-            <button type="button" class="ib" data-act="openDsec" data-s="dice" title="Dice" aria-label="Dice">${OB.icon('dice')}</button>
+            <button type="button" class="ib" data-act="toggleDice" title="Dice and roll log" aria-label="Dice">${OB.icon('dice')}</button>
             <button type="button" class="ib" data-act="openDsec" data-s="journal" title="Journal" aria-label="Journal">${OB.icon('listEdit')}</button>
           </div>
         </header>
@@ -647,12 +655,12 @@
             <div id="drawer-body" class="drawer-body"></div>
           </aside>
         </div>
+        <div id="dicepanel" class="dicepanel" aria-label="Dice and roll log"><button type="button" class="ib dp-x" data-act="toggleDice" aria-label="Close dice">${OB.icon('close')}</button><div id="dice" class="dice"></div></div>
         <button type="button" id="drawer-fab" class="fab" data-act="toggleDrawer" aria-label="Show or hide tools"></button>
         <div id="menu" class="menu" aria-hidden="false">
           <div class="scrim" data-act="closeMenu"></div>
           <aside id="menu-body" class="menu-panel" aria-label="Campaigns and data"></aside>
         </div>
-        <footer class="foot">Autosaves in this browser. <strong>Export</strong> a JSON file to keep a backup or move to another device. · Based on <em>Oathbound</em> by Bruno Rocha Guimarães, which is based on <em>Ironsworn</em> by Shawn Tomkin · CC BY-NC-SA 4.0</footer>
       </div>
       <input type="file" id="file-in" accept=".json,application/json" hidden>
       <input type="file" id="portrait-in" accept="image/*" hidden>`;
@@ -660,5 +668,14 @@
     OB.refresh();
     window.addEventListener('beforeunload', OB.saveNow);
   };
+  /* ---------- PWA: install button + offline service worker ---------- */
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); OB.installEvt = e; OB.canInstall = true;
+    if (OB.ui && OB.ui.menu) OB.refresh();
+  });
+  window.addEventListener('appinstalled', () => { OB.installEvt = null; OB.canInstall = false; OB.toast && OB.toast('App installed.'); });
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
   document.addEventListener('DOMContentLoaded', OB.boot);
 })(window.OB);

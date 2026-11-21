@@ -27,9 +27,11 @@
     const c = OB.char();
     entry.id = uid('r'); entry.ts = Date.now();
     c.log.unshift(entry);
+    const wait = (OB.dice3d && entry.kind !== 'note') ? OB.dice3d.play(entry) : 0;
+    if (wait) { entry.hold = true; setTimeout(() => { delete entry.hold; entry.ts = Date.now(); OB.save(); OB.refresh && OB.refresh(); }, wait); }
     if (c.log.length > 80) c.log.length = 80;
     OB.save();
-    if (window.innerWidth < 1280 && entry.kind !== 'note') { OB.ui.drawer = true; OB.ui.open['dsec:dice'] = true; }
+    if (entry.kind !== 'note') OB.ui.dicePanel = true;
     OB.refresh && OB.refresh();
     OB.flashLog && OB.flashLog();
     return entry;

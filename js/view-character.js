@@ -1,5 +1,6 @@
 /* ==========================================================================
-   OATHBOUND — Character tab (Stargazer-style layout)
+   OATHBOUND — Character tab (Stargazer order: identity, momentum, health /
+   spirit / supply, stat boxes, gear, assets, legacy, impacts)
    ========================================================================== */
 (function (OB) {
   'use strict';
@@ -23,103 +24,78 @@
 
   const TYPE_NAME = { class: 'Class card', path: 'Path card', talent: 'Talent', companion: 'Companion', artifact: 'Artifact', spell: 'Spell', custom: 'Asset' };
 
-  /* ---------- portrait + identity ---------- */
+  /* ---------- identity ---------- */
   function identity(c) {
     const cls = OB.CLASS[c.cls];
     const paths = cls ? cls.paths : [];
-    const portrait = c.portrait
-      ? `<img src="${c.portrait}" alt="Portrait of ${E(c.name || 'your character')}">`
-      : OB.icon('sheet');
-    return `<section class="card ident">
-      <div class="portrait-col">
-        <div class="portrait">${portrait}</div>
-        <div class="portrait-actions">
-          <button type="button" class="btn sm ghost" data-act="portrait">${OB.icon('camera')}<span>${c.portrait ? 'Change' : 'Add portrait'}</span></button>
-          ${c.portrait ? `<button type="button" class="ib sm" data-act="portraitDel" aria-label="Remove portrait">${OB.icon('close')}</button>` : ''}
-        </div>
+    return `<section class="flat ident">
+      <div class="r2">
+        <label class="fl">Name${F.text('name', c.name, { ph: 'Name', label: 'Character name' })}</label>
+        <label class="fl">Pronouns${F.text('pronouns', c.pronouns, { ph: 'Pronouns', label: 'Pronouns' })}</label>
       </div>
-      <div class="ident-main">
-        <div class="ident-top">
-          <label class="fl grow">Name${F.text('name', c.name, { ph: 'Who are you?', cls: 'name-in', label: 'Character name' })}</label>
-          <label class="fl">Pronouns${F.text('pronouns', c.pronouns, { ph: 'they/them, she/her…', label: 'Pronouns' })}</label>
-        </div>
-        <label class="fl">Epithet${F.text('epithet', c.epithet, { ph: 'the Unbroken, of the Red Hand…', label: 'Epithet' })}</label>
-        <div class="ident-chars" role="group" aria-label="Characteristics">
-          <label class="fl">Heritage${F.sel('heritage', c.heritage, OB.HERITAGES.map(h => h.key), { hook: 'heritage', label: 'Heritage' })}</label>
-          <label class="fl">Legacy from${F.sel('legacyFrom', c.legacyFrom, OB.HERITAGES.map(h => h.key), { blank: '— same —', hook: 'heritage', label: 'Legacy from' })}</label>
-          <label class="fl">Upbringing${F.sel('upbringing', c.upbringing, OB.UPBRINGINGS.map(u => u.key), { label: 'Upbringing' })}</label>
-          <label class="fl">Class${F.sel('cls', c.cls, OB.CLASSES.map(x => x.key), { hook: 'class', label: 'Class' })}</label>
-          <label class="fl">Path${F.sel('path', c.path, paths, { hook: 'path', blank: cls ? '— choose —' : 'Choose a class first', label: 'Path' })}</label>
-        </div>
-        <label class="fl">Concept — history, hopes, flaws${F.text('concept', c.concept, { ph: 'A wandering knight who lost her company…', label: 'Concept' })}</label>
-        ${c.extraPaths.length ? `<p class="muted small">Other paths walked: ${c.extraPaths.map(p => `${E(p.path)} (${E(p.cls)})`).join(', ')}</p>` : ''}
+      <div class="r2">
+        <label class="fl">Epithet${F.text('epithet', c.epithet, { ph: 'Epithet', label: 'Epithet' })}</label>
+        <label class="fl">Concept${F.text('concept', c.concept, { ph: 'History, hopes, flaws', label: 'Concept' })}</label>
       </div>
+      <div class="chars" role="group" aria-label="Characteristics">
+        <label class="fl">Heritage${F.sel('heritage', c.heritage, OB.HERITAGES.map(h => h.key), { hook: 'heritage', label: 'Heritage' })}</label>
+        <label class="fl">Legacy from${F.sel('legacyFrom', c.legacyFrom, OB.HERITAGES.map(h => h.key), { blank: '— same —', hook: 'heritage', label: 'Legacy from' })}</label>
+        <label class="fl">Upbringing${F.sel('upbringing', c.upbringing, OB.UPBRINGINGS.map(u => u.key), { label: 'Upbringing' })}</label>
+        <label class="fl">Class${F.sel('cls', c.cls, OB.CLASSES.map(x => x.key), { hook: 'class', label: 'Class' })}</label>
+        <label class="fl">Path${F.sel('path', c.path, paths, { hook: 'path', blank: cls ? '— choose —' : 'Choose a class first', label: 'Path' })}</label>
+      </div>
+      ${c.extraPaths.length ? `<p class="muted small">Other paths walked: ${c.extraPaths.map(p => `${E(p.path)} (${E(p.cls)})`).join(', ')}</p>` : ''}
     </section>`;
   }
 
-  /* ---------- vitals: health, spirit, supply in a row; momentum and focus full width ---------- */
+  /* ---------- vitals: momentum row, then health | spirit | supply ---------- */
   function vitals(c) {
     const maxM = OB.maxMomentum(c), reset = OB.momentumReset(c), maxF = OB.maxFocus(c);
-    const block = (k, name, ic, val, max, o) => `<div class="vit v-${k} ${o && o.blocked ? 'blocked' : ''}">
-        <div class="vit-h">${OB.icon(ic)}<b>${name}</b>${o && o.hint ? `<small class="muted">${o.hint}</small>` : ''}${o && o.blocked ? `<small class="warn">${o.blocked}</small>` : ''}</div>
-        ${OB.cells(k, val, 0, max, { rev: true, cls: 'strip' })}
-      </div>`;
-    return `<section class="card vitals">
-      <div class="vit-grid">
-        ${block('health', 'Health', 'heart', c.health, 5, { hint: 'Endure Harm', blocked: c.deb.wounded ? 'wounded: cannot raise' : '' })}
-        ${block('spirit', 'Spirit', 'flame', c.spirit, 5, { hint: 'Endure Stress', blocked: c.deb.shaken ? 'shaken: cannot raise' : '' })}
-        ${block('supply', 'Supply', 'bag', c.supply, 5, { hint: 'Shared', blocked: c.deb.unprepared ? 'unprepared: cannot raise' : '' })}
-      </div>
-      <div class="vit v-momentum mom">
-        <div class="vit-h">${OB.icon('bolt')}<b>Momentum</b>
-          <span class="mom-meta"><span>Max <b>${OB.sgn(maxM)}</b></span><span>Reset <b>${OB.sgn(reset)}</b></span></span>
-          <button type="button" class="burn ${c.momentum > reset ? 'ready' : ''}" data-act="burnMomentum" ${c.momentum > reset ? '' : 'disabled'} title="Burn momentum: reset to ${OB.sgn(reset)}" aria-label="Burn momentum">${OB.icon('flame')}<span>Burn</span></button>
-        </div>
+    const hs = (k, name, val, blocked) => `<div class="hs v-${k} ${blocked ? 'blocked' : ''}" title="${blocked || ''}"><b class="rl">${name}</b>${OB.cells(k, val, 0, 5, { rev: true, cls: 'strip' })}</div>`;
+    return `<section class="flat vitals">
+      <div class="vrow v-momentum"><b class="rl">Momentum</b>
         ${OB.cells('momentum', c.momentum, -6, 10, { rev: true, signed: true, lockAbove: maxM, reset, cls: 'strip mstrip' })}
+        <span class="mx"><small>Max</small><b>${maxM}</b></span><span class="mx"><small>Reset</small><b>${reset}</b></span>
+        <button type="button" class="burn ${c.momentum > reset ? 'ready' : ''}" data-act="burnMomentum" ${c.momentum > reset ? '' : 'disabled'} title="Burn momentum: reset to ${OB.sgn(reset)}" aria-label="Burn momentum">${OB.icon('flame')}</button>
       </div>
-      <div class="vit v-focus">
-        <div class="vit-h">${OB.icon('star')}<b>Focus</b><small class="muted">${maxF ? `max ${OB.sgn(maxF)} · ${OB.castStat(c) ? 'casts with ' + OB.castStat(c) : 'grit and luck'}` : 'Choose a class to set max focus'}</small></div>
-        ${maxF > 0 ? OB.cells('focus', c.focus, 0, maxF, { rev: true, signed: true, cls: 'strip' }) : ''}
+      <div class="hsrow">
+        ${hs('health', 'Health', c.health, c.deb.wounded ? 'Wounded: cannot raise health' : '')}
+        ${hs('spirit', 'Spirit', c.spirit, c.deb.shaken ? 'Shaken: cannot raise spirit' : '')}
+        ${hs('supply', 'Supply', c.supply, c.deb.unprepared ? 'Unprepared: cannot raise supply' : '')}
       </div>
+      ${maxF > 0 ? `<div class="vrow v-focus"><b class="rl">Focus</b>${OB.cells('focus', c.focus, 0, maxF, { rev: true, cls: 'strip' })}<span class="mx"><small>Max</small><b>${maxF}</b></span><span class="mx"><small>${OB.castStat(c) ? 'Casts with' : ''}</small><b class="cs">${OB.castStat(c) ? OB.cap(OB.castStat(c)) : ''}</b></span></div>` : ''}
     </section>`;
   }
 
-  /* ---------- stats: five boxes, click the number to roll ---------- */
+  /* ---------- stat boxes: click the number to roll ---------- */
   function stats(c) {
-    const sum = OB.STATS.reduce((a, s) => a + c.stats[s.key], 0);
-    return `<section class="card stats">
-      <div class="card-h"><h3>Stats</h3><span class="pill ${sum - c.ascStats === 9 ? 'good' : ''}" title="At creation arrange +3, +2, +2, +1, +1">Σ ${sum}${c.ascStats ? ` · ${c.ascStats} from Ascend` : ''}</span></div>
-      <div class="stat-row">${OB.STATS.map(s => `<div class="stat s-${s.key}">
-          <div class="stat-n">${s.name}</div>
-          <button type="button" class="stat-v" data-act="rollStat" data-k="${s.key}" title="Roll +${s.name.toLowerCase()}" aria-label="Roll ${s.name}">${OB.sgn(c.stats[s.key])}</button>
-          <div class="stat-ctl"><button type="button" class="step" data-act="stat" data-k="${s.key}" data-d="-1" aria-label="Lower ${s.name}">−</button><button type="button" class="step" data-act="stat" data-k="${s.key}" data-d="1" aria-label="Raise ${s.name}">+</button></div>
-          <div class="stat-d">${E(s.desc)}</div>
-        </div>`).join('')}</div>
-      <p class="muted small">${c.cls ? `Suggested for ${E(c.cls)}: ${E(OB.CLASS[c.cls].suggest)}.` : 'Arrange +3, +2, +2, +1, +1 across the five stats.'}</p>
-    </section>`;
+    return `<section class="flat"><div class="sboxes">${OB.STATS.map(s => `<div class="sbox">
+        <span class="sl">${s.name}</span>
+        <button type="button" class="sv" data-act="rollStat" data-k="${s.key}" title="Roll +${s.name.toLowerCase()}" aria-label="Roll ${s.name}">${c.stats[s.key]}</button>
+        <span class="sctl"><button type="button" class="step" data-act="stat" data-k="${s.key}" data-d="-1" aria-label="Lower ${s.name}">−</button><button type="button" class="step" data-act="stat" data-k="${s.key}" data-d="1" aria-label="Raise ${s.name}">+</button></span>
+      </div>`).join('')}</div>
+      <p class="muted small">${c.cls ? `Suggested for ${E(c.cls)}: ${E(OB.CLASS[c.cls].suggest)}.` : 'Arrange +3, +2, +2, +1, +1 at creation.'} Click a number to roll it.</p></section>`;
   }
 
-  /* ---------- gear and notes ---------- */
+  /* ---------- gear & notes ---------- */
   function gear(c) {
-    return `<section class="card">
-      <div class="card-h"><h3>Gear &amp; notes</h3></div>
-      <label class="fl">Important equipment <small>(keep it simple)</small>${F.area('gear', c.gear, { ph: 'Sword, shield, a spellbook, your captain’s ring…', rows: 3, label: 'Equipment' })}</label>
-      <label class="fl">Background and flaws${F.area('background', c.background, { rows: 3, ph: 'Where you come from. What holds you back.', label: 'Background' })}</label>
-      <label class="fl">Hopes and fears${F.area('hopes', c.hopes, { rows: 2, label: 'Hopes and fears' })}</label>
-      <label class="fl">Notes${F.area('notes', c.notes, { rows: 3, ph: 'Anything else.', label: 'Notes' })}</label>
+    return `<section class="flat">
+      <label class="fl">Gear &amp; Notes${F.area('gear', c.gear, { rows: 3, ph: 'Gear & Notes', label: 'Gear and notes' })}</label>
+      <details class="more" data-key="more-notes" ${OB.ui.open['more-notes'] ? 'open' : ''}><summary>More notes</summary>
+        <label class="fl">Background and flaws${F.area('background', c.background, { rows: 3, label: 'Background' })}</label>
+        <label class="fl">Hopes and fears${F.area('hopes', c.hopes, { rows: 2, label: 'Hopes and fears' })}</label>
+        <label class="fl">Notes${F.area('notes', c.notes, { rows: 3, label: 'Notes' })}</label>
+      </details>
     </section>`;
   }
 
-  /* ---------- impacts (debilities) ---------- */
+  /* ---------- impacts ---------- */
   function impacts(c) {
     const groups = [['Conditions', 'Condition'], ['Banes', 'Bane'], ['Burdens', 'Burden']];
-    return `<section class="card impacts">
-      <div class="card-h"><h3>Impacts</h3><span class="pill">${OB.debCount(c)} marked</span></div>
-      <div class="imp-grid">${groups.map(([title, type]) => `<div class="imp-g">
-        <h4>${title}</h4>${OB.DEBILITIES.filter(d => d.type === type).map(d => `<div class="imp-row">${F.chk('deb.' + d.key, !!c.deb[d.key], d.name, { hook: 'deb' })}<small class="muted" title="${E(d.how)}">${E(d.how)}</small></div>`).join('')}
-      </div>`).join('')}</div>
-      <p class="muted small">Each marked impact lowers max momentum by 1 and may lower your reset. Max momentum <strong>${OB.sgn(OB.maxMomentum(c))}</strong>, reset <strong>${OB.sgn(OB.momentumReset(c))}</strong>.</p>
-    </section>`;
+    const body = `<div class="imp-grid">${groups.map(([title, type]) => `<div class="imp-g"><h4>${title}</h4>
+        ${OB.DEBILITIES.filter(d => d.type === type).map(d => `<div class="imp-row" title="${E(d.how)}">${F.chk('deb.' + d.key, !!c.deb[d.key], d.name, { hook: 'deb' })}</div>`).join('')}</div>`).join('')}</div>
+      <p class="muted small">Each marked impact lowers max momentum by 1 and may lower your reset. Max momentum ${OB.sgn(OB.maxMomentum(c))}, reset ${OB.sgn(OB.momentumReset(c))}. Hover an impact for its rule.</p>`;
+    return OB.band('impacts', 'Impacts', OB.debCount(c) ? `<span class="pill bad">${OB.debCount(c)}</span>` : '', body);
   }
 
   /* ---------- legacy: bonds ---------- */
@@ -129,10 +105,9 @@
         ${F.text(`bonds#${b.id}.name`, b.name, { ph: 'Person or community', label: 'Bond name' })}
         ${F.text(`bonds#${b.id}.note`, b.note, { ph: 'Note', label: 'Bond note' })}
         <button type="button" class="ib sm" data-act="delBond" data-id="${b.id}" aria-label="Remove bond">${OB.icon('trash')}</button></div>`).join('') || '<p class="muted small">No bonds yet. Mark up to three background bonds.</p>'}</div>
-      <p class="muted small">Each bond marks 1 tick. Bonds give +1 on certain moves.</p>
       <div class="row gap wrap"><button class="btn sm" data-act="addBond">${OB.icon('plus')}Add bond</button>
       <button class="btn sm ghost" data-act="rollEpilogue" ${c.bonds.length ? '' : 'disabled'}>Write Your Epilogue</button></div>`;
-    return OB.band('bonds', 'Legacy — Bonds', `<span class="pill">${c.bonds.length} tick${c.bonds.length === 1 ? '' : 's'}</span>`, body);
+    return OB.band('bonds', 'Legacy Tracks — Bonds', `<span class="pill">${c.bonds.length}</span>`, body);
   }
 
   /* ---------- experience & tier ---------- */
@@ -167,8 +142,8 @@
       <header class="asset-h">
         <div class="hexes" aria-label="Abilities">${a.abilities.map((ab, i) => `<button type="button" class="hexbtn ${ab.on ? 'on' : ''}" data-act="toggleAbility" data-id="${a.id}" data-i="${i}" aria-pressed="${!!ab.on}" aria-label="Ability ${i + 1}"></button>`).join('')}</div>
         <div class="asset-t">${F.text(`assets#${a.id}.name`, a.name, { ph: 'Asset name', cls: 'asset-name', label: 'Asset name' })}</div>
-        <span class="asset-k">${TYPE_NAME[a.type] || 'Asset'}${a.cls ? ` · ${E(a.cls)}` : ''}${a.tier && a.type === 'path' ? ` · tier ${a.tier}` : ''}</span>
         <button type="button" class="ib sm" data-act="delAsset" data-id="${a.id}" aria-label="Remove asset">${OB.icon('trash')}</button>
+        <span class="asset-k">${TYPE_NAME[a.type] || 'Asset'}${a.cls ? ` · ${E(a.cls)}` : ''}${a.tier && a.type === 'path' ? ` · tier ${a.tier}` : ''}</span>
       </header>
       ${F.area(`assets#${a.id}.sub`, a.sub || '', { rows: 1, ph: 'Type line (e.g. Evoker · Foundation · Spell)', cls: 'asset-sub', label: 'Type line' })}
       ${F.area(`assets#${a.id}.text`, a.text || '', { rows: 2, ph: 'Description', cls: 'asset-text', label: 'Description' })}
@@ -207,18 +182,15 @@
 
   function assets(c) {
     const info = OB.CLASS_INFO[c.cls];
-    const classQ = info ? `<details class="acc" data-key="classq" ${OB.ui.open.classq ? 'open' : ''}><summary><h4>${E(c.cls)} — questions and oath seeds</h4></summary><div class="acc-body">
+    const classQ = info ? `<details class="more" data-key="classq" ${OB.ui.open.classq ? 'open' : ''}><summary>${E(c.cls)} — questions and oath seeds</summary>
       <h5>Background questions</h5><ul>${info.bg.map(q => `<li>${E(q)}</li>`).join('')}</ul>
       <h5>Bond questions</h5><ul>${info.bond.map(q => `<li>${E(q)}</li>`).join('')}</ul>
-      <h5>Oath seeds (d6)</h5><ol>${info.seeds.map(q => `<li>${E(q)}</li>`).join('')}</ol></div></details>` : '';
-    const body = `<div class="row gap wrap tab-actions">
-        <button class="btn primary sm" data-act="newAsset">${OB.icon('plus')}Add asset</button>
-        <span class="muted small">XP available: <strong>${OB.xpAvail(c)}</strong>. Class card, path, talent, companion, or artifact.</span>
-      </div>
+      <h5>Oath seeds (d6)</h5><ol>${info.seeds.map(q => `<li>${E(q)}</li>`).join('')}</ol></details>` : '';
+    const body = `<p class="muted small">XP available: <strong>${OB.xpAvail(c)}</strong>. Class card, path, talent, companion, or artifact.</p>
       ${pathPanel(c)}
       <div class="asset-list">${c.assets.map(assetCard).join('') || '<p class="muted empty">No assets yet. Choose a class, or add a talent or companion.</p>'}</div>
       ${classQ}`;
-    return OB.band('assets', 'Assets', `<span class="pill">${c.assets.length}</span>`, body);
+    return OB.band('assets', 'Assets', OB.bandBtn('newAsset', '', 'Add asset'), body);
   }
 
   /* ---------- creation checklist ---------- */
@@ -245,13 +217,6 @@
 
   OB.v.character = function () {
     const c = OB.char();
-    return `${OB.banner('cover', c.name || 'New Oathbound', 'Swear an oath. See it fulfilled. No matter the cost.')}
-      ${identity(c)}
-      ${vitals(c)}
-      ${stats(c)}
-      <div class="g2">${impacts(c)}${gear(c)}</div>
-      <div class="g2"><div>${bonds(c)}</div><div>${xp(c)}</div></div>
-      ${assets(c)}
-      ${creation(c)}`;
+    return `${identity(c)}${vitals(c)}${stats(c)}${gear(c)}${assets(c)}${bonds(c)}${impacts(c)}${xp(c)}${creation(c)}`;
   };
 })(window.OB);

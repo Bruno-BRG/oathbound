@@ -64,3 +64,22 @@ As class cards das 10 classes estão completas, e a path Evoker também. As outr
 
 *Oathbound* por Bruno Rocha Guimarães, baseado em *Ironsworn* de Shawn Tomkin.
 Texto e arte do livro: CC BY-NC-SA 4.0. Uso não comercial, com crédito, e compartilhe sob a mesma licença.
+
+## PWA (app instalável)
+
+- `manifest.webmanifest`, ícones em `assets/icons/` e `sw.js` (service worker).
+- Depois da primeira visita o app abre **sem internet** (HTML/JS/CSS: rede primeiro; imagens e fontes: cache).
+- Para instalar: menu ≡ → **Install App** (Chrome/Edge/Android), ou "Adicionar à Tela de Início" no iPad/iPhone.
+- Ao publicar uma versão nova, mude `VERSION` em `sw.js`.
+- O service worker só liga em `http(s)`, não em `file://`.
+
+## Tablet
+
+- Gaveta fixa ao lado da ficha a partir de 1024 px (iPad na horizontal); abaixo disso ela vira painel sobre a página.
+- Em telas de toque: alvos de 44 px, campos de 16 px (sem zoom no iOS), botões ± dos atributos sempre visíveis, áreas seguras (notch) respeitadas.
+
+## Dados 3D
+
+- three.js (MIT) em `assets/vendor/three-dice.js`; carrega só quando precisa. Sem WebGL, o app usa o rolo 2D.
+- O jogo sorteia o resultado antes; a animação só mostra o resultado.
+- Menu ≡ → **Dice Style (3D)**: cor do corpo e dos números, acabamento (brilhante, fosco, metal), qualidade (low/medium/high), 10 temas prontos.
