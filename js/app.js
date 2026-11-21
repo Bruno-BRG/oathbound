@@ -8,6 +8,7 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
+  OB.BUILD = '2026-11-21.a';
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
   ];
@@ -70,7 +71,7 @@
       ${item('dupChar', 'copy', 'Duplicate Campaign')}
       ${item('printSheet', 'print', 'Print Character')}
       <div class="swatches" aria-label="Accent colour">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
-      <div class="mfoot"><span id="save-badge"></span><br>Oathbound by Bruno Rocha Guimarães, based on Ironsworn by Shawn Tomkin. CC BY-NC-SA 4.0.</div>`);
+      <div class="mfoot"><span id="save-badge"></span><br><b>Build ${OB.BUILD}</b> · ${OB.THEMES.length} themes · 3D dice · moves by type<br>Oathbound by Bruno Rocha Guimarães, based on Ironsworn by Shawn Tomkin. CC BY-NC-SA 4.0.</div>`);
   }
 
   OB.updateSaveBadge = function () {
