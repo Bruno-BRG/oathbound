@@ -675,7 +675,14 @@
   });
   window.addEventListener('appinstalled', () => { OB.installEvt = null; OB.canInstall = false; OB.toast && OB.toast('App installed.'); });
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    const hadSW = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    // a new version took over: reload once so the user gets the new files
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadSW || reloaded) return;
+      reloaded = true; OB.saveNow && OB.saveNow(); location.reload();
+    });
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {}); });
   }
   document.addEventListener('DOMContentLoaded', OB.boot);
 })(window.OB);
