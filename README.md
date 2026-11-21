@@ -8,7 +8,7 @@ Sem servidor, sem banco de dados, sem conta.
 Segue a estrutura do Stargazer (Iron Journal), com visual próprio:
 
 - **Cabeçalho:** menu de campanhas (≡), busca (Ctrl+K), dados e diário.
-- **Abas:** Campaign · nome do personagem · Challenges · Amarin · Guide.
+- **Abas:** Campaign · nome do personagem · Challenges · Guide.
 - **Gaveta da direita:** Dice (rolagens e log) · Oracles · Moves · Journal. Pode ser recolhida com o botão redondo.
 - **Menu da esquerda:** lista de campanhas, exportar e carregar JSON, exportar diário (.md), duplicar, imprimir, cores de destaque.
 
@@ -16,7 +16,7 @@ Segue a estrutura do Stargazer (Iron Journal), com visual próprio:
 - **Campaign:** nome da campanha, as 8 *Truths* do Amarin (escolha, d100 ou texto próprio), facções e notas.
 - **Character:** identidade, vida/espírito/suprimento/foco/momentum em faixas, stats (clique no número para rolar), impactos, notas, bonds, XP e assets.
 - **Challenges:** vows e progresso (journeys, fights, rituals). Clique nas caixas para marcar. Foes fica aqui também.
-- **Amarin:** mapa do livro com grade hexagonal. Clique num hex para nomear, marcar controle e escrever notas. Roll a place preenche o nome.
+- **Mapa (Amarin):** desativado. O código (`OB.v.amarin` em `js/view-campaign.js`) e a imagem `assets/map.jpg` continuam no repositório. Para reativar, ponha `['amarin', 'Amarin']` em `TABS` no `js/app.js`.
 - **Guide:** resumo das regras e tabelas de referência.
 
 ## Salvar e carregar

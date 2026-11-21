@@ -125,9 +125,11 @@
     const cats = OB.MOVE_CATS.map(cat => {
       const list = OB.MOVES.filter(m => m.cat === cat.key && match(m));
       if (!list.length) return '';
-      return `<section class="move-cat"><h3 class="cat-title"><span>${cat.name} moves</span></h3>${list.map(m => card(m, c)).join('')}</section>`;
+      return `<section class="move-cat cat-${cat.key}"><h3 class="cat-title"><span>${cat.name}</span><small>${list.length}</small></h3>${list.map(m => card(m, c)).join('')}</section>`;
     }).join('');
+    const chips = `<div class="mchips" role="group" aria-label="Move type"><button type="button" class="mchip ${catSel === 'all' ? 'on' : ''}" data-act="moveCat" data-cat="all">All</button>${OB.MOVE_CATS.map(k => `<button type="button" class="mchip cat-${k.key} ${catSel === k.key ? 'on' : ''}" data-act="moveCat" data-cat="${k.key}">${k.name}</button>`).join('')}</div>`;
     return `<div class="searchbox">${OB.icon('search')}<input type="search" id="move-search" placeholder="Search name or key word" value="${E(OB.ui.moveFilter)}" aria-label="Search moves"></div>
+      ${chips}
       ${cats || '<p class="muted empty">No moves match.</p>'}`;
   };
 })(window.OB);

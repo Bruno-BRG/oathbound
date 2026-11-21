@@ -9,23 +9,27 @@
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
   const TABS = [
-    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
+    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
   ];
   const SECTIONS = ['dice', 'oracles', 'moves', 'journal'];
 
   /* ---------- chrome ---------- */
+  // write innerHTML only when it changed: keeps DOM, scroll and open panels, and saves layout work
+  function put(el, html) { if (el._h === html) return false; el._h = html; el.innerHTML = html; return true; }
+
   function renderTabs() {
     const c = OB.char();
-    $('#tabs').innerHTML = TABS.map(([k, label]) => {
+    put($('#tabs'), TABS.map(([k, label]) => {
       const text = k === 'character' ? (c.name || 'Character') : label;
       return `<button type="button" role="tab" class="tab ${OB.ui.tab === k ? 'on' : ''}" aria-selected="${OB.ui.tab === k}" data-act="gotoTab" data-tab="${k}">${E(text)}</button>`;
-    }).join('');
+    }).join(''));
   }
 
   let lastTab = null;
   function renderView() {
     const v = $('#view');
-    v.innerHTML = OB.v[OB.ui.tab]();
+    if (!OB.v[OB.ui.tab]) OB.ui.tab = 'character';
+    put(v, OB.v[OB.ui.tab]());
     v.dataset.tab = OB.ui.tab;
     if (lastTab !== OB.ui.tab) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); lastTab = OB.ui.tab; }
   }
@@ -35,18 +39,20 @@
     const sec = (key, title, icon, html) => `<details class="dsec dsec-${key}" data-key="dsec:${key}" ${isOpen(key) ? 'open' : ''}>
       <summary><span class="dsec-t">${title}</span>${OB.icon('chevDown', 'chev')}</summary>
       <div class="dsec-b">${html}</div></details>`;
-    $('#drawer-body').innerHTML = [
-      sec('oracles', 'Oracles', 'oracle', OB.drawerOracles()),
-      sec('moves', 'Moves', 'moves', OB.drawerMoves()),
-      sec('journal', 'Journal', 'listEdit', OB.drawerJournal())
-    ].join('');
+    // render only the open sections; closed ones stay empty until opened (less DOM, faster page)
+    const body = k => isOpen(k) ? ({ oracles: OB.drawerOracles, moves: OB.drawerMoves, journal: OB.drawerJournal })[k]() : '';
+    put($('#drawer-body'), [
+      sec('oracles', 'Oracles', 'oracle', body('oracles')),
+      sec('moves', 'Moves', 'moves', body('moves')),
+      sec('journal', 'Journal', 'listEdit', body('journal'))
+    ].join(''));
     if (OB.renderDice) OB.renderDice();
   }
 
   function renderMenu() {
     const d = OB.store.data;
     const item = (act, icon, label) => `<button type="button" class="mitem" data-act="${act}">${OB.icon(icon)}<span>${label}</span></button>`;
-    $('#menu-body').innerHTML = `
+    put($('#menu-body'), `
       <div class="mcamps">${d.chars.map(x => `<div class="mrow ${x.id === d.active ? 'on' : ''}">
           <button type="button" class="mpick" data-act="selectChar" data-id="${x.id}">${E(x.campaignName || 'New Campaign - ' + (x.name || 'Unnamed'))}</button>
           <button type="button" class="ib sm" data-act="delChar" data-id="${x.id}" aria-label="Delete campaign">${OB.icon('trash')}</button>
@@ -64,7 +70,7 @@
       ${item('dupChar', 'copy', 'Duplicate Campaign')}
       ${item('printSheet', 'print', 'Print Character')}
       <div class="swatches" aria-label="Accent colour">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
-      <div class="mfoot"><span id="save-badge"></span><br>Oathbound by Bruno Rocha Guimarães, based on Ironsworn by Shawn Tomkin. CC BY-NC-SA 4.0.</div>`;
+      <div class="mfoot"><span id="save-badge"></span><br>Oathbound by Bruno Rocha Guimarães, based on Ironsworn by Shawn Tomkin. CC BY-NC-SA 4.0.</div>`);
   }
 
   OB.updateSaveBadge = function () {
@@ -80,8 +86,8 @@
     const a = document.activeElement;
     const keep = a && a.id && a !== document.body ? { id: a.id, s: a.selectionStart, e: a.selectionEnd } : null;
     const y = window.scrollY;
-    renderTabs(); renderView(); renderDrawer(); renderMenu();
-    $('#drawer-fab').innerHTML = OB.icon(OB.ui.drawer ? 'chevRight' : 'chevLeft');
+    renderTabs(); renderView(); renderDrawer(); if (OB.ui.menu) renderMenu();
+    put($('#drawer-fab'), OB.icon(OB.ui.drawer ? 'chevRight' : 'chevLeft'));
     document.body.classList.toggle('drawer-open', !!OB.ui.drawer);
     document.body.classList.toggle('dice-open', !!OB.ui.dicePanel);
     document.body.classList.toggle('menu-open', !!OB.ui.menu);
@@ -376,6 +382,11 @@
     oracleGroup(el) { OB.ui.oracleGroup = el.dataset.g; OB.refresh(); },
 
     /* moves & dice */
+    guideGo(el) {
+      const k = el.dataset.g; OB.ui.open['g:' + k] = true;
+      const d = document.getElementById('g-' + k);
+      if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    },
     moveCat(el) { OB.ui.moveCat = el.dataset.cat; OB.refresh(); },
     expandMoves(el) { const open = el.dataset.open === '1'; document.querySelectorAll('#drawer details.move').forEach(d => { d.open = open; OB.ui.open[d.dataset.key] = open; }); },
     rollStat(el) {
@@ -592,6 +603,11 @@
     const el = e.target;
     if (!el.dataset || !el.dataset.key) return;
     OB.ui.open[el.dataset.key] = el.open;
+    if (el.classList.contains('dsec')) {
+      const b = el.querySelector('.dsec-b'), k = el.dataset.key.slice(5);
+      if (el.open && b && !b.firstElementChild) b.innerHTML = ({ oracles: OB.drawerOracles, moves: OB.drawerMoves, journal: OB.drawerJournal })[k]();
+      $('#drawer-body')._h = null;
+    }
     if (el.classList.contains('oracle') && el.open && !el.querySelector('.otable')) {
       el.querySelector('.acc-body').insertAdjacentHTML('beforeend', OB.oracleTable(el.dataset.key.slice(7)));
     }

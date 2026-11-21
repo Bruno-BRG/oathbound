@@ -33,7 +33,7 @@
   };
 
   const defaults = () => ({
-    on: true, quality: 'high', pips: false,
+    on: true, quality: 'medium', pips: false,
     action:    { body: '#f2eee3', ink: '#15130e', finish: 'glossy' },
     challenge: { body: '#1b1f27', ink: '#e9d7a0', finish: 'glossy' }
   });
@@ -251,7 +251,7 @@
     camera.aspect = w / h; camera.updateProjectionMatrix();
     const n = specs.length, aspect = w / h;
     const spacing = 2.75, width = Math.max(5.4, n * spacing);
-    const dist = Math.max(11.5, width / (2 * Math.tan(camera.fov * Math.PI / 360) * aspect) * 1.02);
+    const dist = Math.max(19, width / (2 * Math.tan(camera.fov * Math.PI / 360) * aspect) * 1.02);
     camera.position.set(0, dist * 0.93, dist * 0.37); camera.lookAt(0, 0, -0.3);
     const rows = aspect < 0.75 && n > 2 ? 2 : 1, perRow = Math.ceil(n / rows);
     const { Vector3, Quaternion, MathUtils } = T, UP = new Vector3(0, 1, 0);
