@@ -940,3 +940,4 @@ details.move .pill { background: var(--mc); color: #11161e; border: 0; }
 .acc.gsec > summary::after { content: ''; width: 9px; height: 9px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(45deg); transition: transform .12s; margin-right: 4px; }
 .acc.gsec[open] > summary::after { transform: rotate(-135deg); }
 details.move, details.move:nth-of-type(n+2) { background: color-mix(in srgb, var(--mc, #4a5368) 30%, var(--slab)); }
+.am-prev { margin: 4px 0 10px; padding: 8px 12px; background: var(--field); border-radius: 4px; font-size: .92rem; max-height: 220px; overflow-y: auto; } .am-prev p { margin: 0 0 6px; } .am-prev ol { margin: 0; padding-left: 1.2em; } .am-prev li { margin-bottom: 4px; }

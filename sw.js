@@ -1,6 +1,6 @@
 /* Oathbound service worker: offline app shell.
    Keep VERSION equal to OB.BUILD in js/app.js. Change both on every release. */
-const VERSION = 'ob-2026-11-21.a';
+const VERSION = 'ob-2026-11-21.b';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/data.js', 'js/assets-data.js', 'js/core.js', 'js/engine.js', 'js/icons.js', 'js/ui.js',

@@ -8,7 +8,7 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
-  OB.BUILD = '2026-11-21.a';
+  OB.BUILD = '2026-11-21.b';
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
   ];
@@ -177,49 +177,78 @@
     });
   }
 
+  /* ---------- Add asset: browse the whole catalog, or make a custom one ---------- */
+  function catalogItems(kind) {
+    const out = [];
+    if (kind === 'class') OB.CLASSES.forEach(x => out.push({ v: 'class|' + x.key, label: x.key, ab: (OB.CLASS_INFO[x.key] || {}).abilities || [], text: (OB.CLASS_INFO[x.key] || {}).blurb, full: true }));
+    else if (kind === 'path') OB.CLASSES.forEach(x => x.paths.forEach(p => OB.PATH_TIERS.forEach((t, i) => {
+      const k = (OB.PATH_CARDS[p] || [])[i];
+      const nm = k && k.name ? k.name : (i === 0 ? (OB.CLASS_INFO[x.key].foundations || {})[p] : '');
+      out.push({ v: `path|${x.key}|${p}|${i}`, label: `${x.key} · ${p} · ${t}${nm ? ' — ' + nm : ''}`, ab: k && k.abilities || [], text: i === 0 ? (OB.CLASS_INFO[x.key].paths || {})[p] : '', full: !!(k && k.abilities) });
+    })));
+    else if (kind === 'artifact') OB.ARTIFACTS.forEach((a, i) => out.push({ v: 'artifact|' + i, label: a.name, ab: a.abilities, text: a.text, full: true }));
+    else (OB.CATALOG[kind] || []).forEach((a, i) => out.push({ v: kind + '|' + i, label: a.name, ab: a.abilities || [], text: a.text, full: !a.todo }));
+    return out;
+  }
+
   function assetModal() {
     const c = OB.char();
-    const paths = [];
-    if (c.cls) OB.CLASS[c.cls].paths.forEach(p => paths.push({ cls: c.cls, path: p }));
-    c.extraPaths.forEach(p => paths.push(p));
+    const KINDS = [['class', 'Class card'], ['path', 'Path card'], ['talent', 'Talent'], ['companion', 'Companion'], ['spell', 'Spell'], ['artifact', 'Artifact'], ['custom', 'Custom asset']];
     OB.modal({
       title: 'Add asset',
       ok: 'Add',
-      html: `<label class="lbl">Type<select id="am-type">
-          <option value="talent">Talent</option><option value="companion">Companion</option>
-          <option value="path" ${paths.length ? '' : 'disabled'}>Path card</option>
-          <option value="artifact">Artifact</option><option value="spell">Spell</option><option value="custom">Custom asset</option></select></label>
-        <div data-for="name"><label class="lbl">Name<input type="text" id="am-name" autocomplete="off" placeholder="Swordmaster, Archer, Herbalist, Horse…"></label></div>
-        <div data-for="path" hidden><label class="lbl">Path<select id="am-path">${paths.map(p => `<option value="${p.cls}|${p.path}">${p.path} (${p.cls})</option>`).join('')}</select></label>
-          <label class="lbl">Card<select id="am-tier">${OB.PATH_TIERS.map((t, i) => `<option value="${i}">${t} (tier ${i + 1})</option>`).join('')}</select></label></div>
-        <div data-for="artifact" hidden><label class="lbl">Artifact<select id="am-art">${OB.ARTIFACTS.map((a, i) => `<option value="${i}">${E(a.name)}</option>`).join('')}<option value="-1">Custom artifact…</option></select></label></div>
-        <label class="chk"><input type="checkbox" id="am-xp" checked><span class="box"></span><span id="am-xp-l">Spend 3 experience (available: ${OB.xpAvail(c)})</span></label>
-        <p class="muted small">At creation, your class card, one Foundation, and one talent or companion are free. Untick the box for those.</p>`,
+      html: `<label class="lbl">Type<select id="am-type">${KINDS.map(k => `<option value="${k[0]}">${k[1]}</option>`).join('')}</select></label>
+        <div data-for="list"><label class="lbl">Card<select id="am-item"></select></label>
+          <div id="am-prev" class="am-prev"></div></div>
+        <div data-for="name"><label class="lbl">Name<input type="text" id="am-name" autocomplete="off" placeholder="Name of your own asset"></label></div>
+        <label class="chk"><input type="checkbox" id="am-xp" checked><span class="box"></span><span id="am-xp-l"></span></label>
+        <p class="muted small">At creation, your class card, one Foundation, and one talent or companion are free. Untick the box for those. Cards marked “name only” are printed in the book’s Appendix A: the sheet adds the card with its name, and you type the abilities.</p>`,
       onOpen: m => {
         const sync = () => {
           const t = $m('#am-type', m).value;
-          m.querySelectorAll('[data-for]').forEach(el => { const f = el.dataset.for; el.hidden = !(f === t || (f === 'name' && t !== 'path' && !(t === 'artifact' && $m('#am-art', m).value !== '-1'))); });
-          $m('#am-xp-l', m).textContent = (t === 'artifact' ? 'Spend 2 experience' : 'Spend 3 experience') + ` (available: ${OB.xpAvail(c)})`;
+          const custom = t === 'custom';
+          m.querySelector('[data-for="list"]').hidden = custom;
+          m.querySelector('[data-for="name"]').hidden = !custom && t !== 'talent' && t !== 'companion' && t !== 'spell' ? true : !(custom);
+          if (!custom) {
+            const items = catalogItems(t);
+            $m('#am-item', m).innerHTML = items.map(it => `<option value="${E(it.v)}">${E(it.label)}${it.full ? '' : ' (name only)'}</option>`).join('') + (['talent', 'companion', 'spell', 'artifact'].includes(t) ? '<option value="custom">Custom…</option>' : '');
+          }
+          pick();
         };
-        m.addEventListener('change', sync); sync();
+        const pick = () => {
+          const t = $m('#am-type', m).value, v = $m('#am-item', m).value;
+          const own = t === 'custom' || v === 'custom';
+          m.querySelector('[data-for="name"]').hidden = !own;
+          const it = own ? null : catalogItems(t).find(x => x.v === v);
+          $m('#am-prev', m).innerHTML = it ? `${it.text ? `<p>${E(it.text)}</p>` : ''}${it.ab.length ? `<ol>${it.ab.map(x => `<li>${E(Array.isArray(x) ? x[0] + '. ' + x[1] : x)}</li>`).join('')}</ol>` : '<p class="muted small">Name only. Type the abilities on the card.</p>'}` : '';
+          const cost = t === 'artifact' ? 2 : t === 'class' ? 0 : 3;
+          $m('#am-xp', m).checked = cost > 0; $m('#am-xp', m).disabled = cost === 0;
+          $m('#am-xp-l', m).textContent = cost ? `Spend ${cost} experience (available: ${OB.xpAvail(c)})` : 'Class card: free';
+        };
+        $m('#am-type', m).addEventListener('change', sync); $m('#am-item', m).addEventListener('change', pick); sync();
       },
       onOk: m => {
-        const t = $m('#am-type', m).value;
-        const cost = t === 'artifact' ? 2 : 3;
-        const pay = $m('#am-xp', m).checked;
+        const t = $m('#am-type', m), kind = t.value, v = $m('#am-item', m).value;
+        const own = kind === 'custom' || v === 'custom';
+        const cost = kind === 'artifact' ? 2 : kind === 'class' ? 0 : 3;
+        const pay = cost > 0 && $m('#am-xp', m).checked;
         if (pay && OB.xpAvail(c) < cost) { OB.toast('Not enough experience. Untick the box to add it free.'); return false; }
-        if (t === 'path') {
-          const [cls, path] = $m('#am-path', m).value.split('|'); const i = +$m('#am-tier', m).value;
-          if (c.assets.some(a => a.type === 'path' && a.path === path && a.pathIdx === i)) { OB.toast('You already have that card.'); return false; }
-          OB.addPathCard(cls, path, i);
-        } else if (t === 'artifact' && $m('#am-art', m).value !== '-1') {
-          const a = OB.ARTIFACTS[+$m('#am-art', m).value];
-          OB.addAsset({ type: 'artifact', name: a.name, sub: a.sub, text: a.text, abilities: a.abilities.map((x, j) => ({ text: x, on: j === 0 })) });
-        } else {
+        const withAb = (type, a) => OB.addAsset({ type, name: a.name, sub: a.sub, text: a.text || '', abilities: a.abilities ? a.abilities.map((x, j) => ({ text: x, on: j === 0 })) : undefined });
+        if (own) {
           const name = $m('#am-name', m).value.trim();
           if (!name) { OB.toast('Give it a name.'); return false; }
-          OB.addAsset({ type: t, name, sub: t === 'talent' ? 'Talent' : t === 'companion' ? 'Companion' : t === 'spell' ? 'Spell' : '' });
-        }
+          OB.addAsset({ type: kind === 'custom' ? 'custom' : kind, name, sub: { talent: 'Talent', companion: 'Companion', spell: 'Spell', artifact: 'Artifact' }[kind] || '' });
+        } else if (kind === 'class') {
+          const cls = v.split('|')[1];
+          if (c.assets.some(a => a.type === 'class' && a.cls === cls)) { OB.toast('You already have that class card.'); return false; }
+          const info = OB.CLASS_INFO[cls];
+          OB.addAsset({ type: 'class', cls, name: cls + ' (class card)', sub: `${Object.keys(info.paths).join(' & ')} paths · max focus +${OB.CLASS[cls].focus}`, text: info.blurb, abilities: info.abilities.map((x, j) => ({ name: x[0], text: x[1], on: j === 0 })) });
+        } else if (kind === 'path') {
+          const [, cls, path, i] = v.split('|');
+          if (c.assets.some(a => a.type === 'path' && a.path === path && a.pathIdx === +i)) { OB.toast('You already have that card.'); return false; }
+          OB.addPathCard(cls, path, +i);
+        } else if (kind === 'artifact') withAb('artifact', OB.ARTIFACTS[+v.split('|')[1]]);
+        else withAb(kind, OB.CATALOG[kind][+v.split('|')[1]]);
         if (pay) OB.spendXp(cost);
         OB.refresh();
       }

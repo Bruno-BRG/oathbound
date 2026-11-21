@@ -162,6 +162,35 @@
     ]
   };
 
+
+  /* ---------- catalog: talents, companions, spells ----------
+     Cards with `abilities` are complete (text printed in the book's chapters 1 to 6).
+     Cards marked todo:true have only the name: the book prints them in Appendix A.
+     Add or complete an entry here and it shows up in "Add asset" at once:
+       { name, sub, text, abilities:['…','…','…'], todo:false } */
+  OB.CATALOG = {
+    talent: [
+      { name: 'Shieldwall', sub: 'Talent · needs a shield at the ready', text: 'If you wield a shield…', abilities: [
+        'When you Clash with a shield in hand, add +1. On a strong hit, you may also protect an ally: they take +1 momentum.',
+        'When you Endure Harm from an attack that your shield can stop, spend 1 focus to suffer 1 less harm.',
+        'When forced to Endure Harm in a fight, you may instead sacrifice your shield and ignore all harm. If you do, your shield is destroyed or will require extensive repair; suffer −2 momentum.'] },
+      { name: 'Swordmaster', sub: 'Talent', todo: true }, { name: 'Archer', sub: 'Talent', todo: true },
+      { name: 'Healer', sub: 'Talent', todo: true }, { name: 'Sailor', sub: 'Talent', todo: true },
+      { name: 'Scholar of Beasts', sub: 'Talent', todo: true }, { name: 'Herbalist', sub: 'Talent', todo: true }
+    ],
+    companion: [
+      { name: 'Hawk', sub: 'Companion', text: 'Your hawk can aid you when it is aloft.', abilities: [
+        'Far-seeing: When you Undertake a Journey, or when you Resupply by hunting for small game, add +1.',
+        'Fierce: When you Secure an Advantage +agility using your hawk to harass and distract your foes, add +1 and take +1 momentum on a hit.',
+        'Vigilant: When you Face Danger +insight to detect an approaching threat, or when you Enter the Fray +insight against an ambush, add +2.'] },
+      { name: 'Horse', sub: 'Companion', todo: true }, { name: 'Hound', sub: 'Companion', todo: true },
+      { name: 'Familiar', sub: 'Companion', todo: true }, { name: 'Hired Blade', sub: 'Companion', todo: true }
+    ],
+    spell: [
+      { name: 'Far Sight', sub: 'Spell', todo: true }, { name: 'Meteor Swarm', sub: 'Spell · needs tier 3', todo: true }
+    ]
+  };
+
   /* ---------- artifacts printed in chapter 5 ---------- */
   OB.ARTIFACTS = [
     { name: 'Emberbrand', sub: 'Artifact', text: 'An old sword of the Dawn Empire. Its blade burns at a word.', abilities: [
