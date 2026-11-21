@@ -90,7 +90,7 @@
   /* ---------- shared markup ---------- */
   OB.badgeRank = r => `<span class="rank r-${r}">${OB.RANK[r].name}</span>`;
   OB.rankSelect = (id, val, bind) => `<select ${bind ? `data-bind="${bind}"` : ''} id="${id || ''}" class="rank-sel" aria-label="Rank">${OB.RANKS.map(r => `<option value="${r.key}" ${r.key === val ? 'selected' : ''}>${r.name}</option>`).join('')}</select>`;
-  OB.banner = (img, title, sub) => `<div class="banner" style="--img:url(../assets/${img}.jpg)"><div class="banner-text"><h2>${E(title)}</h2>${sub ? `<p>${E(sub)}</p>` : ''}</div></div>`;
+  OB.banner = () => '';
   OB.sectionHead = (t, extra) => `<div class="sec-head"><h3>${E(t)}</h3>${extra || ''}</div>`;
   OB.details = (key, title, body, openDefault) => {
     const open = OB.ui.open[key] != null ? OB.ui.open[key] : !!openDefault;

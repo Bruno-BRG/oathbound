@@ -63,7 +63,6 @@
   OB.v.challenges = function () {
     const c = OB.char();
     const vows = KINDS[0];
-    const vowsBody = `${subHead('Open vows', 'oath', '')}${list(c, 'oath', vows)}`;
     const progress = KINDS.slice(1).map(k => `<section class="prog-sec">
         ${subHead(k.title, k.key, k.key === 'fight' ? `<button type="button" class="chip ${c.initiative ? 'on' : ''}" data-act="toggleInitiative" aria-pressed="${!!c.initiative}">Initiative: ${c.initiative ? 'you' : 'foe'}</button>` : '')}
         ${list(c, k.key, k)}
@@ -71,13 +70,10 @@
     const rules = `<table class="rank-table"><thead><tr><th>Rank</th><th>Mark progress</th><th>Foe: per harm</th><th>Foe inflicts</th></tr></thead><tbody>
       ${OB.RANKS.map(r => `<tr><td>${OB.badgeRank(r.key)}</td><td>${r.mark}</td><td>${r.foe}</td><td>${r.harm} harm · −${r.suffer}</td></tr>`).join('')}</tbody></table>
       <p class="muted small">Bonds always mark 1 tick. Progress moves count only full boxes. You cannot burn momentum on a progress roll, and negative momentum does not apply.</p>`;
-    return `${OB.banner('oath', 'Challenges', 'Vows, journeys, fights, and rituals. Ten boxes, four ticks each.')}
-      <div class="g2 ch-top">
-        ${OB.band('vows', 'Vows', `<button type="button" class="band-btn" data-act="newTrack" data-kind="oath" aria-label="New vow" title="New vow">${OB.icon('plus')}</button>`, vowsBody)}
-        ${OB.band('rules', 'Progress rules', '', rules, false)}
-      </div>
+    return `${OB.band('vows', 'Vows', `<button type="button" class="band-btn" data-act="newTrack" data-kind="oath" aria-label="New vow" title="New vow">${OB.icon('plus')}</button>`, list(c, 'oath', vows))}
       ${OB.band('progress', 'Progress', '', progress)}
-      ${OB.band('foes', 'Foes', '', OB.foesPanel ? OB.foesPanel() : '')}`;
+      ${OB.band('foes', 'Foes', '', OB.foesPanel ? OB.foesPanel() : '', false)}
+      ${OB.band('rules', 'Progress rules', '', rules, false)}`;
   };
 
   /* the key-kind list used by the drawer and the palette */

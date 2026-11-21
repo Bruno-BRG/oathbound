@@ -24,52 +24,27 @@
 
   OB.drawerOracles = function () {
     const q = OB.ui.oracleFilter.toLowerCase().trim();
-    const grp = OB.ui.oracleGroup;
-    const heritages = OB.HERITAGES.map(h => h.key);
     const nameSel = OB.ui.nameHeritage || (OB.char().heritage || 'Human');
-    const quick = `<section class="quick-oracles">
-      <article class="card">
-        ${OB.sectionHead('Ask the Oracle')}
-        <p class="muted small">Decide the odds of a “yes”, then roll d100. The answer is yes if you roll the number shown or higher. A match means an extreme result or a twist.</p>
-        <div class="odds">${OB.ODDS.map(o => `<button type="button" class="odd" data-act="rollAsk" data-odds="${o.key}"><span>${o.name}</span><b>${o.min}+</b></button>`).join('')}</div>
-      </article>
-      <article class="card">
-        ${OB.sectionHead('Name')}
-        <div class="row gap wrap">
-          <select id="name-her" aria-label="Heritage for the name" data-act-change="nameHeritage">${heritages.map(h => `<option ${h === nameSel ? 'selected' : ''}>${h}</option>`).join('')}</select>
-          <label class="chk"><input type="checkbox" id="name-fam" checked><span class="box"></span><span>Family name or epithet</span></label>
-          <button type="button" class="btn primary" data-act="rollName">Roll a name</button>
-        </div>
-        <p class="muted small">Many folk of the Amarin take names from other peoples. Roll on any table you like.</p>
-      </article>
-      ${COMBOS.map(cb => `<article class="card combo"><div class="sec-head"><h3>${cb.title}</h3><button type="button" class="btn small primary" data-act="rollCombo" data-id="${cb.id}">Roll</button></div><p class="muted small">${cb.hint}</p></article>`).join('')}
-    </section>`;
-
-    const keys = Object.keys(OB.ORACLES).filter(k => {
-      const t = OB.ORACLES[k];
-      if (grp !== 'all' && t.group !== grp) return false;
-      if (q && !(t.title + ' ' + (t.hint || '')).toLowerCase().includes(q)) return false;
-      return true;
-    });
-    const groups = OB.ORACLE_GROUPS.filter(g => keys.some(k => OB.ORACLES[k].group === g));
-    const body = groups.map(g => `<section class="o-group"><h3 class="cat-title"><span>${g}</span></h3>
-      <div class="o-grid">${keys.filter(k => OB.ORACLES[k].group === g).map(k => {
-        const t = OB.ORACLES[k];
-        const key = 'oracle:' + k;
-        return `<details class="oracle" data-key="${key}" ${OB.ui.open[key] ? 'open' : ''}>
-          <summary><span class="oname">${E(t.title)}</span><button type="button" class="btn small primary" data-act="rollOracle" data-key="${k}" onclick="event.stopPropagation()">Roll</button></summary>
-          <div class="acc-body">${t.hint ? `<p class="muted small">${E(t.hint)}</p>` : ''}${OB.ui.open[key] ? tableRows(t) : ''}</div></details>`;
-      }).join('')}</div></section>`).join('');
-
-    return `      ${quick}
-      <div class="filters">
-        <input type="search" id="oracle-search" placeholder="Search oracles…" value="${E(OB.ui.oracleFilter)}" aria-label="Search oracles">
-        <div class="chips" role="group" aria-label="Oracle group">
-          <button type="button" class="chip ${grp === 'all' ? 'on' : ''}" data-act="oracleGroup" data-g="all">All</button>
-          ${OB.ORACLE_GROUPS.map(g => `<button type="button" class="chip ${grp === g ? 'on' : ''}" data-act="oracleGroup" data-g="${g}">${g}</button>`).join('')}
-        </div>
-      </div>
-      ${body || '<p class="muted empty">No oracle matches.</p>'}`;
+    const row = k => {
+      const t = OB.ORACLES[k], key = 'oracle:' + k;
+      return `<details class="oracle orow" data-key="${key}" ${OB.ui.open[key] ? 'open' : ''}>
+        <summary><button type="button" class="ib sm" data-act="copyOracle" data-key="${k}" title="Roll and copy the result" aria-label="Roll ${E(t.title)} and copy">${OB.icon('copy')}</button><span class="oname">${E(t.title)}</span><button type="button" class="ib sm dicebtn" data-act="rollOracle" data-key="${k}" aria-label="Roll ${E(t.title)}">${OB.icon('dice')}</button></summary>
+        <div class="acc-body">${t.hint ? `<p class="muted small">${E(t.hint)}</p>` : ''}${OB.ui.open[key] ? tableRows(t) : ''}</div></details>`;
+    };
+    const comboRow = cb => `<div class="orow flat"><span class="ib sm spacer"></span><span class="oname">${E(cb.title)}</span><button type="button" class="ib sm dicebtn" data-act="rollCombo" data-id="${cb.id}" aria-label="Roll ${E(cb.title)}">${OB.icon('dice')}</button></div>`;
+    const comboFor = { 'Action and Theme': ['actiontheme'], Character: ['npc'], Settlement: ['settlement'], Place: ['place', 'ruin', 'coast'] };
+    const cats = OB.ORACLE_GROUPS.map(g => {
+      const keys = Object.keys(OB.ORACLES).filter(k => OB.ORACLES[k].group === g && (!q || OB.ORACLES[k].title.toLowerCase().includes(q)));
+      const combos = (comboFor[g] || []).map(id => COMBOS.find(c => c.id === id)).filter(c => c && (!q || c.title.toLowerCase().includes(q)));
+      let extra = '';
+      if (g === 'Fate' && !q) extra += `<div class="ask"><span class="oname">Ask the Oracle</span><div class="odds">${OB.ODDS.map(o => `<button type="button" class="odd" data-act="rollAsk" data-odds="${o.key}"><span>${o.name}</span><b>${o.min}+</b></button>`).join('')}</div></div>`;
+      if (g === 'Names' && !q) extra += `<div class="ask"><span class="oname">Name by heritage</span><div class="row gap wrap"><select id="name-her" aria-label="Heritage">${OB.HERITAGES.map(h => `<option ${h.key === nameSel ? 'selected' : ''}>${h.key}</option>`).join('')}</select><label class="chk"><input type="checkbox" id="name-fam" checked><span class="box"></span><span>Family name</span></label><button type="button" class="btn sm" data-act="rollName">${OB.icon('dice')}Roll</button></div></div>`;
+      if (!keys.length && !combos.length && !extra) return '';
+      const key = 'ocat:' + g;
+      const open = q ? true : !!OB.ui.open[key];
+      return `<details class="ocat" data-key="${key}" ${open ? 'open' : ''}><summary><span>${g}</span>${OB.icon('chevDown', 'chev')}</summary><div class="ocat-b">${extra}${combos.map(comboRow).join('')}${keys.map(row).join('')}</div></details>`;
+    }).join('');
+    return `<div class="searchbox">${OB.icon('search')}<input type="search" id="oracle-search" placeholder="Search oracles" value="${E(OB.ui.oracleFilter)}" aria-label="Search oracles"></div>${cats || '<p class="muted empty">No oracle matches.</p>'}`;
   };
 
   OB.rollCombo = function (id) {

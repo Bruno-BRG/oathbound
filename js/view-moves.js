@@ -107,7 +107,7 @@
     const table = m.table ? `<details class="acc"><summary>${E(m.tableName)} (d100)</summary><div class="acc-body"><table class="otable">${m.table.map((r, i) => `<tr><td class="n">${i ? m.table[i - 1][0] + 1 : 1}–${r[0]}</td><td>${OB.md(r[1]).replace(/^<p>|<\/p>$/g, '')}</td></tr>`).join('')}</table>
       <button type="button" class="btn small" data-act="rollTableData" data-move="${E(m.name)}">Roll this table</button></div></details>` : '';
     return `<details class="move cat-${m.cat}" id="mv-${OB.slug(m.name)}" data-key="${E(key)}" ${open ? 'open' : ''}>
-      <summary><span class="mname">${E(m.name)}</span>${badge}<span class="mcat">${OB.cap(m.cat)}</span></summary>
+      <summary><span class="mtitle"><span class="mname">${E(m.name)}</span><span class="msrc">Oathbound Waystone · ${OB.cap(m.cat)} moves</span></span>${badge}</summary>
       <div class="move-body">
         <p class="trigger"><strong>When</strong> ${OB.md(m.trigger).replace(/^<p>/, '').replace(/<\/p>$/, '')}</p>
         ${widget(m, c)}
@@ -127,15 +127,7 @@
       if (!list.length) return '';
       return `<section class="move-cat"><h3 class="cat-title"><span>${cat.name} moves</span></h3>${list.map(m => card(m, c)).join('')}</section>`;
     }).join('');
-    return `      <div class="filters">
-        <input type="search" id="move-search" placeholder="Search moves…" value="${E(OB.ui.moveFilter)}" aria-label="Search moves">
-        <div class="chips" role="group" aria-label="Move category">
-          <button type="button" class="chip ${catSel === 'all' ? 'on' : ''}" data-act="moveCat" data-cat="all">All</button>
-          ${OB.MOVE_CATS.map(x => `<button type="button" class="chip ${catSel === x.key ? 'on' : ''}" data-act="moveCat" data-cat="${x.key}">${x.name}</button>`).join('')}
-        </div>
-        <div class="row gap"><button type="button" class="btn small ghost" data-act="expandMoves" data-open="1">Expand all</button><button type="button" class="btn small ghost" data-act="expandMoves" data-open="0">Collapse all</button></div>
-      </div>
-      <p class="muted small">Roll: d6 + stat + adds against two d10. Strong hit beats both dice. Weak hit beats one. Ties go to the challenge dice. Use the dice panel to set an <em>add</em> before you roll.</p>
+    return `<div class="searchbox">${OB.icon('search')}<input type="search" id="move-search" placeholder="Search name or key word" value="${E(OB.ui.moveFilter)}" aria-label="Search moves"></div>
       ${cats || '<p class="muted empty">No moves match.</p>'}`;
   };
 })(window.OB);

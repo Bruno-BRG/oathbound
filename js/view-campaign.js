@@ -100,29 +100,25 @@
     const regions = OB.REGIONS.map(r => r.name);
     const reg = c.region || regions[0];
     const info = OB.REGION_INFO[reg] || { text: '', features: [], quests: [] };
-    const sel = OB.ui.hex && c.hexes[OB.ui.hex] ? OB.ui.hex : (OB.ui.hex || null);
+    const sel = OB.ui.hex || null;
+    const h = sel ? (c.hexes[sel] || { name: '', control: '', note: '' }) : null;
     const marked = Object.keys(c.hexes).filter(k => c.hexes[k] && (c.hexes[k].name || c.hexes[k].control || c.hexes[k].note));
-    return `${OB.banner('map', 'The Amarin', 'Click a hex to name it. Mark who controls it, and what is there.')}
-      <section class="card amarin-bar">
-        <label class="fl grow">Region${`<select data-act-change="setRegion" aria-label="Region">${regions.map(r => `<option ${r === reg ? 'selected' : ''}>${E(r)}</option>`).join('')}</select>`}</label>
-        <div class="fl sel-info"><span class="lbl-s">Selected hex</span><span>${sel ? E(sel) : '<span class="muted">none — click the map</span>'}</span></div>
-      </section>
-      <div class="amarin-grid">
-        <section class="card map-card">${hexSvg(c, sel)}</section>
-        <aside class="card hex-card">${sel ? hexEditor(c, sel) : '<p class="muted">Click a hex to name it, mark control, and write notes. Named hexes show on the map.</p>'}</aside>
+    const field = (label, path, val, ph) => sel
+      ? `<label class="fl">${label}${F.text(path, val, { ph, label })}</label>`
+      : `<label class="fl">${label}<input type="text" disabled placeholder="Click a hex"></label>`;
+    return `<div class="sector-bar">
+        <label class="fl">Region<select data-act-change="setRegion" aria-label="Region">${regions.map(r => `<option ${r === reg ? 'selected' : ''}>${E(r)}</option>`).join('')}</select></label>
+        ${field('Place', `hexes.${sel}.name`, h && h.name, 'Name this place')}
+        ${field('Faction/Control', `hexes.${sel}.control`, h && h.control, 'Faction, power, or nobody')}
+        <div class="sector-btns"><button type="button" class="ib" data-act="hexRollPlace" ${sel ? '' : 'disabled'} title="Roll a place" aria-label="Roll a place">${OB.icon('dice')}</button>
+          <button type="button" class="ib" data-act="hexClear" data-k="${sel || ''}" ${sel ? '' : 'disabled'} title="Clear this hex" aria-label="Clear this hex">${OB.icon('trash')}</button></div>
       </div>
-      <div class="g2">
-        <section class="card region-card">
-          <div class="card-h"><h3>${E(reg)}</h3></div>
-          <p class="region-text">${E(info.text)}</p>
-          <h5>Features</h5><ul>${info.features.map(f => `<li>${E(f)}</li>`).join('')}</ul>
-          <h5>Quest starters</h5><ul>${info.quests.map(f => `<li>${E(f)}</li>`).join('')}</ul>
-          <button type="button" class="btn sm ghost" data-act="regionNote" data-name="${E(reg)}">Add a quest starter to the journal</button>
-        </section>
-        <section class="card">
-          <div class="card-h"><h3>Marked places</h3><span class="pill">${marked.length}</span></div>
-          ${marked.length ? `<ul class="places">${marked.map(k => `<li><button type="button" class="link" data-act="hexSel" data-k="${k}">${E(c.hexes[k].name || 'Unnamed')}</button> <span class="muted small">${E(c.hexes[k].control || '')} · hex ${E(k)}</span></li>`).join('')}</ul>` : '<p class="muted">Nothing marked yet.</p>'}
-        </section>
-      </div>`;
+      <div class="map-wrap">${hexSvg(c, sel)}</div>
+      ${sel ? `<label class="fl">Hex ${E(sel)} notes${F.area(`hexes.${sel}.note`, h.note, { rows: 3, ph: 'What is here?', label: 'Hex notes' })}</label>` : ''}
+      ${OB.band('region', reg, '', `<p class="region-text">${E(info.text)}</p>
+        <h5>Features</h5><ul>${info.features.map(f => `<li>${E(f)}</li>`).join('')}</ul>
+        <h5>Quest starters</h5><ul>${info.quests.map(f => `<li>${E(f)}</li>`).join('')}</ul>
+        <button type="button" class="btn sm ghost" data-act="regionNote" data-name="${E(reg)}">Add a quest starter to the journal</button>`)}
+      ${OB.band('places', 'Marked places', `<span class="pill">${marked.length}</span>`, marked.length ? `<ul class="places">${marked.map(k => `<li><button type="button" class="link" data-act="hexSel" data-k="${k}">${E(c.hexes[k].name || 'Unnamed')}</button> <span class="muted small">${E(c.hexes[k].control || '')} · hex ${E(k)}</span></li>`).join('')}</ul>` : '<p class="muted">Nothing marked yet.</p>')}`;
   };
 })(window.OB);
