@@ -107,6 +107,10 @@
   }
 
   function entry(e, c) {
+    const html = entryHtml(e, c);
+    return (Date.now() - e.ts < 900) ? html.replace('class="roll', 'class="roll fresh') : html;
+  }
+  function entryHtml(e, c) {
     if (e.kind === 'action' || e.kind === 'progress') return actionCard(e, c);
     if (e.kind === 'oracle') return oracleCard(e);
     if (e.kind === 'ask') return askCard(e);
@@ -122,7 +126,7 @@
     const prog = c.tracks.filter(t => !t.done && ['oath', 'journey', 'fight', 'ritual', 'other'].includes(t.kind));
     el.classList.toggle('open', !!OB.ui.diceOpen);
     el.innerHTML = `
-      <div class="dice-head"><h2>Dice</h2><button type="button" class="icon-btn close-dice" data-act="toggleDice" aria-label="Close dice panel">×</button></div>
+      <div class="dice-head"><h2>${OB.icon('dice')}Dice</h2><button type="button" class="icon-btn close-dice" data-act="toggleDice" aria-label="Close dice panel">×</button></div>
       <div class="dice-controls">
         <div class="lbl">Action roll <small class="muted">d6 + stat + adds vs 2d10</small></div>
         <div class="statrow">${OB.STATS.map(s => `<button type="button" class="statbtn" data-act="rollStat" data-k="${s.key}" title="Roll +${s.name.toLowerCase()}"><span>${s.short}</span><b>${OB.sgn(c.stats[s.key])}</b></button>`).join('')}</div>

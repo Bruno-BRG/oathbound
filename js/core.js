@@ -48,7 +48,7 @@
     return {
       id: OB.uid('c'),
       created: Date.now(),
-      name: '', concept: '', pronouns: '',
+      name: '', concept: '', pronouns: '', portrait: '',
       heritage: '', legacyFrom: '', upbringing: '', cls: '', path: '',
       extraPaths: [],            // paths gained by Ascend: [{cls, path}]
       stats: { agility: 0, strength: 0, finesse: 0, presence: 0, insight: 0 },

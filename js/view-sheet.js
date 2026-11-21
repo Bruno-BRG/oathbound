@@ -75,7 +75,6 @@
           <div class="stat-name">${s.name}</div>
           <div class="stat-val"><button type="button" class="step" data-act="stat" data-k="${s.key}" data-d="-1" aria-label="Lower ${s.name}">−</button><span>${OB.sgn(c.stats[s.key])}</span><button type="button" class="step" data-act="stat" data-k="${s.key}" data-d="1" aria-label="Raise ${s.name}">+</button></div>
           <div class="stat-desc">${s.desc}</div>
-          <button type="button" class="btn small" data-act="rollStat" data-k="${s.key}">Roll +${s.name.toLowerCase()}</button>
         </div>`).join('')}</div>
       ${c.cls ? `<p class="muted small">Suggested for ${E(c.cls)}: ${E(OB.CLASS[c.cls].suggest)}</p>` : '<p class="muted small">Arrange +3, +2, +2, +1, +1 across the five stats.</p>'}
     </article>`;
@@ -84,9 +83,10 @@
   /* ---------- tracks & momentum ---------- */
   function vitals(c) {
     const maxM = OB.maxMomentum(c), reset = OB.momentumReset(c), maxF = OB.maxFocus(c);
+    const IC = { health: 'heart', spirit: 'flame', supply: 'bag', focus: 'star', momentum: 'bolt' };
     const row = (k, name, val, blocked, hint) => `
-      <div class="vital-row ${blocked ? 'blocked' : ''}">
-        <div class="vital-name">${name}${blocked ? `<small class="warn">${blocked}</small>` : ''}<small class="muted">${hint}</small></div>
+      <div class="vital-row v-${k} ${blocked ? 'blocked' : ''}">
+        <div class="vital-name">${OB.icon(IC[k])}<div>${name}${blocked ? `<small class="warn">${blocked}</small>` : ''}<small class="muted">${hint}</small></div></div>
         ${OB.cells(k, val, 0, 5, { signed: true })}
       </div>`;
     return `<article class="card vitals">
@@ -94,12 +94,12 @@
       ${row('health', 'Health', c.health, c.deb.wounded ? 'wounded: cannot raise' : '', 'Endure Harm')}
       ${row('spirit', 'Spirit', c.spirit, c.deb.shaken ? 'shaken: cannot raise' : '', 'Endure Stress')}
       ${row('supply', 'Supply', c.supply, c.deb.unprepared ? 'unprepared: cannot raise' : '', 'Shared with allies')}
-      <div class="vital-row">
-        <div class="vital-name">Focus<small class="muted">max +${maxF} · ${OB.castStat(c) ? 'casts with ' + OB.castStat(c) : 'grit and luck'}</small></div>
+      <div class="vital-row v-focus">
+        <div class="vital-name">${OB.icon('star')}<div>Focus<small class="muted">max +${maxF} · ${OB.castStat(c) ? 'casts with ' + OB.castStat(c) : 'grit and luck'}</small></div></div>
         ${maxF > 0 ? OB.cells('focus', c.focus, 0, maxF, { signed: true }) : '<span class="muted small">Choose a class to set max focus.</span>'}
       </div>
-      <div class="vital-row mom">
-        <div class="vital-name">Momentum<small class="muted">max +${maxM} · reset ${OB.sgn(reset)}</small></div>
+      <div class="vital-row mom v-momentum">
+        <div class="vital-name">${OB.icon('bolt')}<div>Momentum<small class="muted">max +${maxM} · reset ${OB.sgn(reset)}</small></div></div>
         ${OB.cells('momentum', c.momentum, -6, 10, { signed: true, lockAbove: maxM, reset, cls: 'mstrip' })}
         <div class="row gap mom-actions">
           <button type="button" class="btn small" data-act="burnHud" ${c.momentum > reset ? '' : 'disabled'}>Burn → ${OB.sgn(reset)}</button>
@@ -195,9 +195,28 @@
     </details>`;
   }
 
+  function plate(c) {
+    const tier = OB.TIERS[c.tier - 1];
+    const tags = [c.heritage, c.upbringing, c.cls, c.path].filter(Boolean);
+    return `<section class="plate">
+      <div class="plate-art" aria-hidden="true"></div>
+      <div class="portrait-wrap">
+        <div class="portrait">${c.portrait ? `<img src="${c.portrait}" alt="Portrait of ${E(c.name || 'your character')}">` : OB.icon('sheet')}</div>
+        <div class="portrait-actions"><button type="button" class="btn small ghost" data-act="portrait">${OB.icon('camera')}<span>${c.portrait ? 'Change' : 'Portrait'}</span></button>${c.portrait ? '<button type="button" class="icon-btn" data-act="portraitDel" aria-label="Remove portrait">×</button>' : ''}</div>
+      </div>
+      <div class="plate-body">
+        <div class="kicker"><span>Tier ${c.tier}</span><i></i><span>${E(tier.title)}</span></div>
+        <h1 class="plate-name">${E(c.name || 'Unnamed Oathbound')}</h1>
+        ${c.concept ? `<p class="plate-concept">${E(c.concept)}</p>` : '<p class="plate-concept dim">Swear an oath. See it fulfilled. No matter the cost.</p>'}
+        <div class="tags">${tags.map(t => `<span class="tag-chip">${E(t)}</span>`).join('') || '<span class="muted small">Choose a heritage, upbringing, and class below.</span>'}</div>
+        <div class="runes" role="group" aria-label="Roll a stat">${OB.STATS.map(s => `<button type="button" class="rune" data-act="rollStat" data-k="${s.key}" title="Roll +${s.name.toLowerCase()}"><b>${OB.sgn(c.stats[s.key])}</b><span>${s.name}</span></button>`).join('')}</div>
+      </div>
+    </section>`;
+  }
+
   OB.v.sheet = function () {
     const c = OB.char();
-    return `${OB.banner('cover', c.name || 'New Oathbound', 'Swear an oath. See it fulfilled. No matter the cost.')}
+    return `${plate(c)}
       <div class="grid sheet-grid">
         ${identity(c)}${stats(c)}${vitals(c)}${abilities(c)}${debilities(c)}${bonds(c)}${xp(c)}${gear(c)}
       </div>

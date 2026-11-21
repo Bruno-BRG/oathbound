@@ -19,6 +19,15 @@ Sem servidor. Sem banco de dados. Sem conta.
 O painel de **Dice** (à direita, ou o botão 🎲 no celular) faz a rolagem de ação (d6 + stat + adds contra 2d10),
 **burn momentum**, momentum negativo, matches, rolagem de progresso e guarda o log de rolagens.
 
+## Visual e atalhos
+
+- Menu lateral com ícones (barra de baixo no celular), faixa fixa com health, spirit, supply, focus e momentum.
+- Ficha com **retrato** (envie uma imagem; ela entra no JSON), runas de stats que rolam ao clicar.
+- Dados que rolam com animação; strong hit brilha, miss treme.
+- **Ctrl+K** (ou `/`) abre a busca: moves, oráculos, foes e ações.
+- **Cores de destaque**: menu ⋯ → Accent (gold, ember, frost, verdant, arcane).
+- Fontes e arte ficam dentro do projeto. Funciona offline.
+
 ## Salvar e carregar
 
 - Salva sozinho no **localStorage** do navegador.

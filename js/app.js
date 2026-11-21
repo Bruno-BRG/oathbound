@@ -27,31 +27,43 @@
     b.textContent = t ? 'Saved ' + t.getHours().toString().padStart(2, '0') + ':' + t.getMinutes().toString().padStart(2, '0') : 'Autosave on';
   };
 
+  const initials = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
+  OB.avatar = (c, cls) => c.portrait ? `<img class="av ${cls || ''}" src="${c.portrait}" alt="">` : `<span class="av ${cls || ''}">${E(initials(c.name))}</span>`;
+
   function renderHud() {
     const c = OB.char();
-    const h = OB.HERITAGE[c.heritage];
     const reset = OB.momentumReset(c), maxM = OB.maxMomentum(c), maxF = OB.maxFocus(c);
-    const vit = (k, name, val, hint, max) => `<div class="hv" title="${hint}"><span class="hv-l">${name}</span><div class="hv-c"><button type="button" class="step" data-act="vital" data-k="${k}" data-d="-1" aria-label="Lower ${name}">−</button><b class="${val <= 0 && k !== 'momentum' ? 'zero' : ''}">${OB.sgn(val)}</b><button type="button" class="step" data-act="vital" data-k="${k}" data-d="1" aria-label="Raise ${name}">+</button></div><small>${max}</small></div>`;
+    const vit = (k, name, val, hint, max, icon, pct) => `<div class="hv v-${k}" title="${hint} · ${max}">
+      <span class="hv-i">${OB.icon(icon)}</span>
+      <div class="hv-m"><span class="hv-l">${name}</span>
+        <div class="hv-c"><button type="button" class="step" data-act="vital" data-k="${k}" data-d="-1" aria-label="Lower ${name}">−</button><b class="${val <= 0 && k !== 'momentum' ? 'zero' : ''}">${OB.sgn(val)}</b><button type="button" class="step" data-act="vital" data-k="${k}" data-d="1" aria-label="Raise ${name}">+</button></div>
+        <i class="hv-bar" style="--p:${Math.max(0, Math.min(100, pct))}%"></i></div>
+      <small>${max}</small></div>`;
     const n = OB.debCount(c);
     $('#hud').innerHTML = `<div class="hud-inner">
-      <div class="hud-id"><b>${E(c.name || 'Unnamed')}</b><small>${[c.heritage, c.cls, 'Tier ' + c.tier].filter(Boolean).map(E).join(' · ')}</small></div>
-      ${vit('health', 'Health', c.health, 'Endure Harm', 'max +5')}
-      ${vit('spirit', 'Spirit', c.spirit, 'Endure Stress', 'max +5')}
-      ${vit('supply', 'Supply', c.supply, 'Shared with allies', 'max +5')}
-      ${vit('focus', 'Focus', c.focus, 'Magic and grit', 'max +' + maxF)}
-      ${vit('momentum', 'Momentum', c.momentum, 'Burn after a roll to improve it', 'max +' + maxM + ' · reset ' + OB.sgn(reset))}
-      <div class="hud-deb">${n ? OB.DEBILITIES.filter(d => c.deb[d.key]).map(d => `<span class="pill bad">${d.name}</span>`).join('') : '<span class="muted small">No debilities</span>'}</div>
+      <div class="hud-id">${OB.avatar(c)}<div><b>${E(c.name || 'Unnamed')}</b><small>${[c.heritage, c.cls, 'Tier ' + c.tier].filter(Boolean).map(E).join(' · ')}</small></div></div>
+      ${vit('health', 'Health', c.health, 'Endure Harm', 'max +5', 'heart', c.health / 5 * 100)}
+      ${vit('spirit', 'Spirit', c.spirit, 'Endure Stress', 'max +5', 'flame', c.spirit / 5 * 100)}
+      ${vit('supply', 'Supply', c.supply, 'Shared with allies', 'max +5', 'bag', c.supply / 5 * 100)}
+      ${vit('focus', 'Focus', c.focus, 'Magic and grit', 'max +' + maxF, 'star', maxF ? c.focus / maxF * 100 : 0)}
+      ${vit('momentum', 'Momentum', c.momentum, 'Burn after a roll to improve it', 'max +' + maxM + ' · reset ' + OB.sgn(reset), 'bolt', (c.momentum + 6) / 16 * 100)}
+      <div class="hud-deb">${n ? OB.DEBILITIES.filter(d => c.deb[d.key]).map(d => `<span class="pill bad">${d.name}</span>`).join('') : ''}</div>
     </div>`;
   }
 
+  const TAB_ICON = { sheet: 'sheet', tracks: 'tracks', assets: 'assets', moves: 'moves', oracles: 'oracles', foes: 'foes', guide: 'guide', journal: 'journal' };
   function renderTabs() {
-    $('#tabs').innerHTML = TABS.map(t => `<button type="button" role="tab" class="tab ${OB.ui.tab === t[0] ? 'on' : ''}" aria-selected="${OB.ui.tab === t[0]}" data-act="gotoTab" data-tab="${t[0]}">${t[1]}</button>`).join('');
+    $('#tabs').innerHTML = `<div class="rail-logo" aria-hidden="true">${OB.icon('logo')}</div>` +
+      TABS.map(t => `<button type="button" role="tab" class="tab ${OB.ui.tab === t[0] ? 'on' : ''}" aria-selected="${OB.ui.tab === t[0]}" data-act="gotoTab" data-tab="${t[0]}">${OB.icon(TAB_ICON[t[0]])}<span>${t[1]}</span></button>`).join('') +
+      `<button type="button" class="tab rail-dice" data-act="toggleDice" aria-label="Dice">${OB.icon('dice')}<span>Dice</span></button>`;
   }
 
+  let lastTab = null;
   function renderView() {
     const v = $('#view');
     v.innerHTML = OB.v[OB.ui.tab]();
     v.dataset.tab = OB.ui.tab;
+    if (lastTab !== OB.ui.tab) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); lastTab = OB.ui.tab; }
   }
 
   OB.refresh = function () {
@@ -379,7 +391,11 @@
     exportOne() { OB.exportData(false); closeMenu(); },
     exportAll() { OB.exportData(true); closeMenu(); },
     importFile() { closeMenu(); $('#file-in').click(); },
-    printSheet() { closeMenu(); window.print(); }
+    printSheet() { closeMenu(); window.print(); },
+    theme(el) { OB.setTheme(el.dataset.t); },
+    palette() { closeMenu(); OB.palette(); },
+    portrait() { $('#portrait-in').click(); },
+    portraitDel() { OB.char().portrait = ''; OB.save(); OB.refresh(); }
   };
   const closeMenu = () => { const m = $('#file-menu'); if (m) m.open = false; };
 
@@ -421,6 +437,7 @@
     const el = e.target;
     if (el.id === 'char-select') { OB.store.data.active = el.value; OB.saveNow(); OB.refresh(); return; }
     if (el.id === 'file-in') { readFile(el.files[0]); el.value = ''; return; }
+    if (el.id === 'portrait-in') { readPortrait(el.files[0]); el.value = ''; return; }
     if (el.dataset.actChange === 'nameHeritage') { OB.ui.nameHeritage = el.value; return; }
     if (el.dataset.actChange === 'pickTruth') { const c = OB.char(); c.truths = c.truths || {}; c.truths[el.dataset.key] = Object.assign(c.truths[el.dataset.key] || {}, { pick: +el.value }); OB.save(); OB.refresh(); return; }
     if (!el.dataset.bind) return;
@@ -460,33 +477,114 @@
   window.addEventListener('dragover', e => e.preventDefault());
   window.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f && /json$/i.test(f.name)) readFile(f); });
 
+
+  /* ---------- theme ---------- */
+  OB.THEMES = [['gold', 'Gold'], ['ember', 'Ember'], ['frost', 'Frost'], ['verdant', 'Verdant'], ['arcane', 'Arcane']];
+  OB.applyTheme = function () {
+    let t = 'gold'; try { t = localStorage.getItem('oathbound.theme') || 'gold'; } catch (e) { /* storage blocked */ }
+    document.documentElement.dataset.theme = t;
+  };
+  OB.setTheme = function (t) {
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('oathbound.theme', t); } catch (e) { /* storage blocked */ }
+  };
+
+  /* ---------- portrait: crop square, shrink, store as data URL ---------- */
+  function readPortrait(file) {
+    if (!file) return;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const S = 420, cv = document.createElement('canvas'); cv.width = cv.height = S;
+      const side = Math.min(img.width, img.height);
+      cv.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 4 > 0 ? (img.height - side) / 4 : 0, side, side, 0, 0, S, S);
+      URL.revokeObjectURL(url);
+      OB.char().portrait = cv.toDataURL('image/jpeg', 0.82);
+      OB.save(); OB.refresh(); OB.toast('Portrait set.');
+    };
+    img.onerror = () => OB.toast('Could not read that image.');
+    img.src = url;
+  }
+
+  /* ---------- command palette (Ctrl/Cmd+K or /) ---------- */
+  OB.palette = function () {
+    const items = [];
+    TABS.forEach(t => items.push({ k: 'Go to', n: t[1], run: () => A.gotoTab({ dataset: { tab: t[0] } }) }));
+    OB.MOVES.forEach(m => items.push({ k: 'Move', n: m.name, h: OB.cap(m.cat), run: () => A.gotoMove({ dataset: { move: m.name } }) }));
+    Object.keys(OB.ORACLES).forEach(k => items.push({ k: 'Oracle', n: OB.ORACLES[k].title, h: 'roll', run: () => OB.rollOracle(k) }));
+    OB.ODDS.forEach(o => items.push({ k: 'Oracle', n: 'Ask the Oracle — ' + o.name, h: o.min + '+', run: () => OB.rollAsk(o.key) }));
+    OB.FOES.forEach(g => g.list.forEach(f => items.push({ k: 'Foe', n: f[0], h: f[1] + ' · add to Fights', run: () => OB.addFoe(f[0], f[1]) })));
+    [['New oath', () => A.newTrack({ dataset: { kind: 'oath' } })], ['New journey', () => A.newTrack({ dataset: { kind: 'journey' } })], ['Add bond', () => A.addBond()],
+      ['Add asset', () => A.newAsset()], ['Roll d100', () => A.rollD100()], ['Export JSON', () => OB.exportData(false)], ['Import JSON', () => $('#file-in').click()],
+      ['New character', () => A.newChar()]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
+    let sel = 0, list = items;
+    const close = () => { const m = document.getElementById('modal'); if (m) m.remove(); };
+    const draw = m => {
+      m.querySelector('.pal-list').innerHTML = list.slice(0, 40).map((it, i) => `<button type="button" class="pal-item ${i === sel ? 'on' : ''}" data-i="${i}"><span class="pk">${it.k}</span><span class="pn">${E(it.n)}</span><span class="ph">${E(it.h || '')}</span></button>`).join('') || '<p class="muted empty">Nothing found.</p>';
+      const on = m.querySelector('.pal-item.on'); if (on) on.scrollIntoView({ block: 'nearest' });
+    };
+    OB.modal({
+      title: 'Search', ok: false, noCancel: true,
+      html: `<input type="search" class="pal-in" placeholder="Move, oracle, foe, action…" aria-label="Search" autocomplete="off"><div class="pal-list"></div>`,
+      onOpen: m => {
+        m.classList.add('pal');
+        const inp = m.querySelector('.pal-in');
+        const go = i => { const it = list[i]; if (!it) return; close(); setTimeout(it.run, 0); };
+        inp.addEventListener('input', () => { const q = inp.value.toLowerCase().trim(); list = !q ? items : items.filter(it => (it.k + ' ' + it.n).toLowerCase().includes(q)); sel = 0; draw(m); });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, Math.min(list.length, 40) - 1); draw(m); e.preventDefault(); }
+          else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); draw(m); e.preventDefault(); }
+          else if (e.key === 'Enter') go(sel);
+        });
+        m.querySelector('.pal-list').addEventListener('click', e => { const b = e.target.closest('.pal-item'); if (b) go(+b.dataset.i); });
+        draw(m);
+      }
+    });
+  };
+  document.addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '');
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); OB.palette(); }
+    else if (e.key === '/' && !typing && !document.getElementById('modal')) { e.preventDefault(); OB.palette(); }
+  });
+
   /* ---------- boot ---------- */
   OB.boot = function () {
     OB.load();
+    OB.applyTheme();
     $('#app').innerHTML = `
-      <header class="topbar">
-        <div class="brand"><span class="mark">OATHBOUND</span><small>Character sheet · Waystone</small></div>
-        <div class="top-tools">
-          <span id="top-chars"></span>
-          <button type="button" class="btn small" data-act="newChar" title="New character">+ New</button>
-          <button type="button" class="btn small primary" data-act="exportOne" title="Download this character as a JSON file">Export JSON</button>
-          <button type="button" class="btn small" data-act="importFile" title="Load a character from a JSON file">Import</button>
-          <details class="menu" id="file-menu"><summary class="btn small ghost" aria-label="More">⋯</summary>
-            <div class="menu-pop">
-              <button type="button" data-act="exportAll">Export all characters</button>
-              <button type="button" data-act="dupChar">Duplicate character</button>
-              <button type="button" data-act="printSheet">Print sheet</button>
-              <button type="button" class="danger" data-act="delChar">Delete character</button>
-            </div></details>
-          <span id="save-badge"></span>
+      <div class="shell">
+        <nav id="tabs" class="rail" role="tablist" aria-label="Sections"></nav>
+        <div class="col">
+          <header class="masthead">
+            <div class="brand"><span class="mark">OATHBOUND</span><small>Character sheet · Waystone</small></div>
+            <div class="top-tools">
+              <span id="top-chars"></span>
+              <button type="button" class="btn small ghost ico-btn" data-act="palette" title="Search everything (Ctrl+K)" aria-label="Search">${OB.icon('search')}<span class="kbd">Ctrl K</span></button>
+              <button type="button" class="btn small" data-act="newChar" title="New character">${OB.icon('plus')}<span>New</span></button>
+              <button type="button" class="btn small primary" data-act="exportOne" title="Download this character as a JSON file">${OB.icon('download')}<span>Export</span></button>
+              <button type="button" class="btn small" data-act="importFile" title="Load a character from a JSON file">${OB.icon('upload')}<span>Import</span></button>
+              <details class="menu" id="file-menu"><summary class="btn small ghost" aria-label="More">${OB.icon('more')}</summary>
+                <div class="menu-pop">
+                  <div class="menu-sec">Accent</div>
+                  <div class="swatches">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
+                  <button type="button" class="only-m" data-act="importFile">Import character (JSON)</button>
+                  <button type="button" data-act="exportAll">Export all characters</button>
+                  <button type="button" data-act="dupChar">Duplicate character</button>
+                  <button type="button" data-act="printSheet">Print sheet</button>
+                  <button type="button" class="danger" data-act="delChar">Delete character</button>
+                </div></details>
+              <span id="save-badge"></span>
+            </div>
+          </header>
+          <div id="hud" class="hud"></div>
+          <main id="view" class="view"></main>
+          <footer class="foot">Autosaves in this browser. <strong>Export</strong> a JSON file to keep a backup or to move to another device. · Based on <em>Oathbound</em> by Bruno Rocha Guimarães, which is based on <em>Ironsworn</em> by Shawn Tomkin · CC BY-NC-SA 4.0</footer>
         </div>
-      </header>
-      <div class="stickybar"><div id="hud" class="hud"></div>
-      <nav id="tabs" class="tabs" role="tablist" aria-label="Sections"></nav></div>
-      <div class="layout"><main id="view" class="view"></main><aside id="dice" class="dice" aria-label="Dice and roll log"></aside></div>
-      <button type="button" id="dice-fab" class="fab" data-act="toggleDice" aria-label="Open dice and roll log">🎲</button>
-      <footer class="foot">Autosaves in this browser. <strong>Export JSON</strong> to keep a backup or to move to another device. · Based on <em>Oathbound</em> by Bruno Rocha Guimarães, which is based on <em>Ironsworn</em> by Shawn Tomkin · CC BY-NC-SA 4.0</footer>
-      <input type="file" id="file-in" accept=".json,application/json" hidden>`;
+        <aside id="dice" class="dice" aria-label="Dice and roll log"></aside>
+      </div>
+      <button type="button" id="dice-fab" class="fab" data-act="toggleDice" aria-label="Open dice and roll log">${OB.icon('dice')}</button>
+      <input type="file" id="file-in" accept=".json,application/json" hidden>
+      <input type="file" id="portrait-in" accept="image/*" hidden>`;
     OB.refresh();
     window.addEventListener('beforeunload', OB.saveNow);
   };
