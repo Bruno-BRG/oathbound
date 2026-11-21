@@ -94,7 +94,6 @@
 
   function amarin() {
     return `
-      <img class="map" src="assets/map.jpg" alt="Map of the Amarin" loading="lazy">
       <p>The Amarin is a wide land between two seas. Three hundred years ago it was the heart of the Dawn Empire, ruled by mage-kings who built roads of white stone, towers that touched the clouds, and vaults that still hold their secrets. Then, in a single night, the Empire fell. Its capital was torn apart by a storm of wild magic. Its armies turned on each other. Its gods went silent for a generation.</p>
       <h4>Travel</h4>
       <p>Make <em>Undertake a Journey</em> when you cross dangerous or unknown lands. Choose a rank from the fiction. Do not measure distance exactly; travel moves at the speed of the story. An imperial road, a known coast by ship, or a trusted guide can lower the rank. A ruin of the Empire, a fey-touched forest, or a war-torn border can raise it.</p>
@@ -122,19 +121,65 @@
       ${table(['Tier', 'Title', 'To reach this tier…'], OB.TIERS.map(t => [t.tier, t.title, t.need]))}`;
   }
 
+  /* quick references */
+  const md = t => OB.md(t).replace(/^<p>|<\/p>$/g, '');
+
+  function combat() {
+    const step = (n, title, body) => `<li class="cstep"><span class="cn">${n}</span><div><strong>${title}</strong><div class="cb">${body}</div></div></li>`;
+    return `
+      <p class="lead">Combat is a loop: one side has <strong>initiative</strong>. That side attacks. A hit marks progress on the foe. When you are ready, you finish the fight with a progress roll.</p>
+      <ol class="csteps">
+        ${step(1, 'Enter the Fray', md('Rank each foe, then roll to see who has initiative: **+presence** (face to face), **+finesse** (they are unaware), **+insight** (you are ambushed). Strong hit: +2 momentum and initiative. Weak hit: +2 momentum *or* initiative. Miss: foe has initiative, and you [[Pay the Price]].'))}
+        ${step(2, 'You have initiative: Strike', md('Roll **+strength** (close) or **+agility** (ranged). Strong hit: inflict your harm +1 and keep initiative. Weak hit: inflict your harm, lose initiative. Miss: [[Pay the Price]], foe has initiative.'))}
+        ${step(3, 'Foe has initiative: Clash', md('Roll **+strength** (close) or **+agility** (ranged). Strong hit: inflict your harm, take initiative, and choose +1 momentum or +1 harm. Weak hit: inflict your harm, then [[Pay the Price]]. Miss: you are outmatched, [[Pay the Price]].'))}
+        ${step(4, 'Mark progress on the foe', md('Each harm you inflict marks progress on the foe track, by rank (table below). When the foe hits you, [[Endure Harm]] for the harm its rank inflicts.'))}
+        ${step(5, 'End the Fight', md('After a **strong hit** on any move, you may end the fight. Roll your progress (full boxes) against the challenge dice. Strong: the foe is out. Weak: out, but you choose a cost. Miss: you lost, [[Pay the Price]].'))}
+      </ol>
+      <div class="two-tables">
+        ${table(['Foe rank', 'Progress per harm', 'Inflicts'], OB.RANKS.map(r => [r.name, r.foe, r.harm + ' harm']))}
+        ${table(['Your weapon', 'Harm'], [['Sword, axe, spear, bow (deadly)', '2'], ['Unarmed, shield, club, staff, rock', '1'], ['Two foes, one fight', 'One track each. Strike one at a time.']])}
+      </div>
+      <div class="gtips">
+        <div class="gtip"><b>Turn the Tide</b>${md('Once per fight, steal initiative to make a move. +1 and +1 momentum on a hit. If you miss, the outcome is dire.')}</div>
+        <div class="gtip"><b>Battle</b>${md('For a fight that happens in a blur, roll once for the objective with the stat that fits.')}</div>
+        <div class="gtip"><b>Burn momentum</b>${md('After any roll, if momentum beats a challenge die, cancel that die. Reset afterwards.')}</div>
+      </div>
+      <div class="row gap wrap"><button class="btn" data-act="gotoMove" data-move="Enter the Fray">Open Enter the Fray</button><button class="btn" data-act="gotoMove" data-move="Strike">Open Strike</button><button class="btn" data-act="gotoMove" data-move="Clash">Open Clash</button><button class="btn" data-act="gotoMove" data-move="End the Fight">Open End the Fight</button></div>`;
+  }
+
+  function quick() {
+    return `
+      <div class="gq-grid">
+        <div class="gq"><h4>Action roll</h4><p class="big">d6 + stat + adds <span>vs</span> 2 × d10</p><p class="muted">Beat both = strong hit. Beat one = weak hit. Beat none = miss. Score never goes above 10.</p></div>
+        <div class="gq"><h4>Progress roll</h4><p class="big">full boxes <span>vs</span> 2 × d10</p><p class="muted">No d6, no stat, no burning momentum. Only full boxes count (4 ticks each).</p></div>
+        <div class="gq"><h4>Momentum</h4><p class="big">−6 … +10</p><p class="muted">Reset +2 (less with debilities). Burn it to cancel a challenge die that is lower than your momentum.</p></div>
+        <div class="gq"><h4>Match</h4><p class="big">both d10 equal</p><p class="muted">Add a twist or an opportunity. If unsure, Ask the Oracle.</p></div>
+      </div>`;
+  }
+
+  const SECTIONS = [
+    ['combat', 'Combat', 'combat', 'How a fight works, step by step'],
+    ['mech', 'Core rules', 'adventure', 'Rolls, momentum, tracks, harm'],
+    ['start', 'Getting started', 'quest', 'Create a character and a campaign'],
+    ['magic', 'Magic', 'magic', 'Spells, rituals, gods, items'],
+    ['amarin', 'The Amarin', 'relationship', 'Regions and travel'],
+    ['lineage', 'Lineage and class', 'suffer', 'Heritage, upbringing, class, tiers'],
+    ['credits', 'Credits', 'fate', 'License']
+  ];
+
   OB.v.guide = function () {
     const c = OB.char();
-    return `${OB.banner('ranger', 'Guide', 'Waystone: the rules you use most at the table.')}
-      <div class="acc-stack">
-        ${OB.details('g:start', '<h3>Getting started</h3>', gettingStarted(c), true)}
-        ${OB.details('g:mech', '<h3>Mechanics summary</h3>', mechanics())}
-        ${OB.details('g:magic', '<h3>Magic</h3>', magic())}
-        ${OB.details('g:amarin', '<h3>The Amarin</h3>', amarin())}
-        ${OB.details('g:lineage', '<h3>Heritage, upbringing, and class</h3>', lineage())}
-        ${OB.details('g:credits', '<h3>Credits and license</h3>', `<p><strong>Design and writing:</strong> Bruno Rocha Guimarães. <strong>Based on:</strong> Ironsworn by Shawn Tomkin (ironswornrpg.com).</p>
-          <p>The text of Oathbound is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license (CC BY-NC-SA 4.0). You may share and adapt it for non-commercial use if you give credit and share your changes under the same license.</p>
-          <p>Some ideas for classes, heritages, upbringings, and paths draw inspiration from Daggerheart by Darrington Press. This sheet is not affiliated with or endorsed by Darrington Press, Critical Role, or Shawn Tomkin.</p>`)}
-      </div>`;
+    const body = {
+      combat: combat(), mech: mechanics(), start: gettingStarted(c), magic: magic(), amarin: amarin(), lineage: lineage(),
+      credits: `<p><strong>Design and writing:</strong> Bruno Rocha Guimarães. <strong>Based on:</strong> Ironsworn by Shawn Tomkin (ironswornrpg.com).</p>
+          <p>The text of Oathbound is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license (CC BY-NC-SA 4.0). You may share and adapt it for non-commercial use if you give credit and share alike.</p>
+          <p>Some ideas for classes, heritages, upbringings, and paths draw inspiration from Daggerheart by Darrington Press. This sheet is not affiliated with or endorsed by Darrington Press, Critical Role, or Shawn Tomkin.</p>`
+    };
+    return `<div class="guide">
+      ${quick()}
+      <div class="gnav" role="navigation" aria-label="Guide sections">${SECTIONS.map(x => `<button type="button" class="gtile cat-${x[2]}" data-act="guideGo" data-g="${x[0]}"><b>${x[1]}</b><span>${x[3]}</span></button>`).join('')}</div>
+      <div class="acc-stack">${SECTIONS.map(x => OB.details('g:' + x[0], `<h3>${x[1]}</h3>`, body[x[0]], x[0] === 'combat').replace('class="acc"', `class="acc gsec cat-${x[2]}" id="g-${x[0]}"`)).join('')}</div>
+    </div>`;
   };
 
 })(window.OB);
