@@ -1,71 +1,64 @@
 # Oathbound — Ficha de personagem
 
 Ficha digital para o RPG **Oathbound** (baseado em Ironsworn). Roda 100% no navegador.
-Sem servidor. Sem banco de dados. Sem conta.
+Sem servidor, sem banco de dados, sem conta.
 
-## O que tem
+## Layout
 
-| Aba | O que faz |
-|---|---|
-| **Sheet** | Identidade, stats, health/spirit/supply/focus/momentum, debilities, bonds, XP, tier, Ascend, checklist de criação, setup semi-aleatório |
-| **Tracks** | Oaths, journeys, fights e rituals com trilha de 10 caixas × 4 ticks, por rank |
-| **Assets** | Class card, path cards, talents, companions, artifacts, spells |
-| **Moves** | Todos os moves do Waystone, com botões de rolagem e resultado de strong hit, weak hit e miss |
-| **Oracles** | Todos os oráculos do Waystone (d100), Ask the Oracle, nomes por heritage, geradores combinados |
-| **Foes** | Bestiário por rank, pack builder, fights |
-| **Guide** | Regras resumidas, magia, deuses, patronos, o mapa e as regiões do Amarin |
-| **Journal** | Diário de sessão e *Your Truths* (as 8 verdades do mundo) |
+Segue a estrutura do Stargazer (Iron Journal), com visual próprio:
 
-O painel de **Dice** (à direita, ou o botão 🎲 no celular) faz a rolagem de ação (d6 + stat + adds contra 2d10),
-**burn momentum**, momentum negativo, matches, rolagem de progresso e guarda o log de rolagens.
+- **Cabeçalho:** menu de campanhas (≡), busca (Ctrl+K), dados e diário.
+- **Abas:** Campaign · nome do personagem · Challenges · Amarin · Guide.
+- **Gaveta da direita:** Dice (rolagens e log) · Oracles · Moves · Journal. Pode ser recolhida com o botão redondo.
+- **Menu da esquerda:** lista de campanhas, exportar e carregar JSON, exportar diário (.md), duplicar, imprimir, cores de destaque.
 
-## Visual e atalhos
-
-- Menu lateral com ícones (barra de baixo no celular), faixa fixa com health, spirit, supply, focus e momentum.
-- Ficha com **retrato** (envie uma imagem; ela entra no JSON), runas de stats que rolam ao clicar.
-- Dados que rolam com animação; strong hit brilha, miss treme.
-- **Ctrl+K** (ou `/`) abre a busca: moves, oráculos, foes e ações.
-- **Cores de destaque**: menu ⋯ → Accent (gold, ember, frost, verdant, arcane).
-- Fontes e arte ficam dentro do projeto. Funciona offline.
+### Abas
+- **Campaign:** nome da campanha, as 8 *Truths* do Amarin (escolha, d100 ou texto próprio), facções e notas.
+- **Character:** identidade, vida/espírito/suprimento/foco/momentum em faixas, stats (clique no número para rolar), impactos, notas, bonds, XP e assets.
+- **Challenges:** vows e progresso (journeys, fights, rituals). Clique nas caixas para marcar. Foes fica aqui também.
+- **Amarin:** mapa do livro com grade hexagonal. Clique num hex para nomear, marcar controle e escrever notas. Roll a place preenche o nome.
+- **Guide:** resumo das regras e tabelas de referência.
 
 ## Salvar e carregar
 
 - Salva sozinho no **localStorage** do navegador.
-- **Export JSON** baixa o personagem. **Import** carrega o arquivo (ou arraste o `.json` para a janela).
-- Faça o backup em JSON. Se limpar os dados do navegador, o save local some.
+- **Export** no menu baixa a campanha em JSON. **Load** carrega o arquivo (ou arraste o `.json` para a janela).
+- Faça backup em JSON. Se limpar os dados do navegador, o save local some.
 
 ## Publicar na Vercel
 
 Não há build. É um site estático.
 
-1. Suba este repositório no GitHub.
-2. Na Vercel: **Add New → Project**, escolha o repositório.
-3. **Framework Preset: Other**. Deixe Build Command e Output Directory vazios. **Deploy**.
-
-Ou pela CLI: `npx vercel --prod` na pasta do projeto.
-
-Para testar local, abra o `index.html` no navegador, ou rode `npx serve .`.
+1. Na Vercel: **Add New → Project**, escolha o repositório.
+2. **Framework Preset: Other**. Build Command e Output Directory vazios.
+3. Em **Production Branch**, use `main`. **Deploy**.
 
 ## Estrutura
 
 ```
-index.html          página
-css/style.css       visual
-js/data.js          regras: heritages, classes, moves, oráculos (Waystone)
-js/assets-data.js   cartas de classe, mundo, truths, regiões (Core Rulebook)
-js/core.js          estado, save, import/export
-js/engine.js        dados, moves, efeitos, tracks, tiers
-js/view-*.js        telas
-js/app.js           eventos e ações
-assets/             arte do livro
+index.html            página (carrega os scripts nesta ordem)
+css/style.css         visual
+js/data.js            regras: heritages, classes, moves, oráculos (Waystone)
+js/assets-data.js     cartas de classe, mundo, truths, regiões (Core Rulebook)
+js/core.js            estado, save, import/export
+js/engine.js          rolagens, moves, efeitos, tracks, tiers
+js/icons.js           ícones em SVG
+js/ui.js              componentes (faixas, bandas, modal)
+js/view-character.js  aba Character
+js/view-challenges.js aba Challenges
+js/view-campaign.js   abas Campaign e Amarin (mapa hexagonal)
+js/view-guide.js      aba Guide
+js/view-moves.js      moves na gaveta
+js/view-oracles.js    oráculos e foes
+js/view-log.js        dados e log de rolagens
+js/drawer.js          diário na gaveta
+js/app.js             casca do app, menu, eventos e ações
+assets/               arte e fontes
 ```
 
 ## Completar as path cards
 
-As **class cards** das 10 classes estão completas. A path **Evoker** (Arcane Bolt, Fireball) e os artefatos
-Emberbrand e Crown of the Drowned King também. As outras path cards, os talents e os companions do
-Apêndice A do Core Rulebook entram em `js/assets-data.js`, em `OB.PATH_CARDS`. Enquanto isso, a ficha cria o card
-com o nome certo e você digita as habilidades.
+As class cards das 10 classes estão completas, e a path Evoker também. As outras path cards, talents e companions do Apêndice A do Core Rulebook entram em `OB.PATH_CARDS` (em `js/assets-data.js`). Enquanto isso, a ficha cria o card com o nome certo e você digita as habilidades.
 
 ## Créditos e licença
 

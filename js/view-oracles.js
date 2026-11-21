@@ -22,7 +22,7 @@
 
   OB.oracleTable = k => tableRows(OB.ORACLES[k]);
 
-  OB.v.oracles = function () {
+  OB.drawerOracles = function () {
     const q = OB.ui.oracleFilter.toLowerCase().trim();
     const grp = OB.ui.oracleGroup;
     const heritages = OB.HERITAGES.map(h => h.key);
@@ -61,8 +61,7 @@
           <div class="acc-body">${t.hint ? `<p class="muted small">${E(t.hint)}</p>` : ''}${OB.ui.open[key] ? tableRows(t) : ''}</div></details>`;
       }).join('')}</div></section>`).join('');
 
-    return `${OB.banner('oracle', 'Oracles', 'Ask what happens. In solo or co-op play, the oracle is your game master.')}
-      ${quick}
+    return `      ${quick}
       <div class="filters">
         <input type="search" id="oracle-search" placeholder="Search oracles…" value="${E(OB.ui.oracleFilter)}" aria-label="Search oracles">
         <div class="chips" role="group" aria-label="Oracle group">
@@ -105,13 +104,12 @@
     OB.addFoe(name, raise(rank, n), size === 'large' ? ' (large pack, 6–10)' : ' (small pack, 3–5)');
   };
 
-  OB.v.foes = function () {
+  OB.foesPanel = function () {
     const c = OB.char();
     const q = OB.ui.foeFilter.toLowerCase().trim();
     const flat = OB.FOES.flatMap(g => g.list.map(f => f[0]));
     const fights = c.tracks.filter(t => t.kind === 'fight' && !t.done);
-    return `${OB.banner('fight', 'Foes', 'Give each foe a rank and a progress track. Harm marks progress by rank.')}
-      <article class="card">
+    return `      <article class="card">
         ${OB.sectionHead('Fighting a foe')}
         <div class="rank-table">
           <div class="rt-head"><span>Rank</span><span>Type</span><span>Progress per harm</span><span>Inflicts</span></div>

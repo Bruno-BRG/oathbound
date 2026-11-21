@@ -1,61 +1,25 @@
 /* ==========================================================================
-   OATHBOUND — app: shell, rendering, events, actions
+   OATHBOUND — app shell (Stargazer-style): header, tabs, campaign menu,
+   right drawer (dice · oracles · moves · journal), events and actions.
    ========================================================================== */
 (function (OB) {
   'use strict';
   const E = OB.esc;
   const $ = (s, r) => (r || document).querySelector(s);
+  const WIDE = () => window.matchMedia('(min-width: 1280px)').matches;
 
   const TABS = [
-    ['sheet', 'Sheet'], ['tracks', 'Tracks'], ['assets', 'Assets'], ['moves', 'Moves'],
-    ['oracles', 'Oracles'], ['foes', 'Foes'], ['guide', 'Guide'], ['journal', 'Journal']
+    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
   ];
+  const SECTIONS = ['dice', 'oracles', 'moves', 'journal'];
 
   /* ---------- chrome ---------- */
-  function renderTop() {
-    const d = OB.store.data;
-    const c = OB.char();
-    $('#top-chars').innerHTML = `<select id="char-select" aria-label="Character">${d.chars.map(x => `<option value="${x.id}" ${x.id === c.id ? 'selected' : ''}>${E(x.name || 'Unnamed')}${x.cls ? ' — ' + E(x.cls) : ''}</option>`).join('')}</select>`;
-    OB.updateSaveBadge();
-  }
-  OB.updateSaveBadge = function () {
-    const b = $('#save-badge'); if (!b) return;
-    const s = OB.store;
-    if (!s.storageOK) { b.className = 'warn'; b.textContent = 'Autosave is off in this browser. Export to keep your data.'; return; }
-    b.className = '';
-    const t = s.lastSaved ? new Date(s.lastSaved) : null;
-    b.textContent = t ? 'Saved ' + t.getHours().toString().padStart(2, '0') + ':' + t.getMinutes().toString().padStart(2, '0') : 'Autosave on';
-  };
-
-  const initials = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
-  OB.avatar = (c, cls) => c.portrait ? `<img class="av ${cls || ''}" src="${c.portrait}" alt="">` : `<span class="av ${cls || ''}">${E(initials(c.name))}</span>`;
-
-  function renderHud() {
-    const c = OB.char();
-    const reset = OB.momentumReset(c), maxM = OB.maxMomentum(c), maxF = OB.maxFocus(c);
-    const vit = (k, name, val, hint, max, icon, pct) => `<div class="hv v-${k}" title="${hint} · ${max}">
-      <span class="hv-i">${OB.icon(icon)}</span>
-      <div class="hv-m"><span class="hv-l">${name}</span>
-        <div class="hv-c"><button type="button" class="step" data-act="vital" data-k="${k}" data-d="-1" aria-label="Lower ${name}">−</button><b class="${val <= 0 && k !== 'momentum' ? 'zero' : ''}">${OB.sgn(val)}</b><button type="button" class="step" data-act="vital" data-k="${k}" data-d="1" aria-label="Raise ${name}">+</button></div>
-        <i class="hv-bar" style="--p:${Math.max(0, Math.min(100, pct))}%"></i></div>
-      <small>${max}</small></div>`;
-    const n = OB.debCount(c);
-    $('#hud').innerHTML = `<div class="hud-inner">
-      <div class="hud-id">${OB.avatar(c)}<div><b>${E(c.name || 'Unnamed')}</b><small>${[c.heritage, c.cls, 'Tier ' + c.tier].filter(Boolean).map(E).join(' · ')}</small></div></div>
-      ${vit('health', 'Health', c.health, 'Endure Harm', 'max +5', 'heart', c.health / 5 * 100)}
-      ${vit('spirit', 'Spirit', c.spirit, 'Endure Stress', 'max +5', 'flame', c.spirit / 5 * 100)}
-      ${vit('supply', 'Supply', c.supply, 'Shared with allies', 'max +5', 'bag', c.supply / 5 * 100)}
-      ${vit('focus', 'Focus', c.focus, 'Magic and grit', 'max +' + maxF, 'star', maxF ? c.focus / maxF * 100 : 0)}
-      ${vit('momentum', 'Momentum', c.momentum, 'Burn after a roll to improve it', 'max +' + maxM + ' · reset ' + OB.sgn(reset), 'bolt', (c.momentum + 6) / 16 * 100)}
-      <div class="hud-deb">${n ? OB.DEBILITIES.filter(d => c.deb[d.key]).map(d => `<span class="pill bad">${d.name}</span>`).join('') : ''}</div>
-    </div>`;
-  }
-
-  const TAB_ICON = { sheet: 'sheet', tracks: 'tracks', assets: 'assets', moves: 'moves', oracles: 'oracles', foes: 'foes', guide: 'guide', journal: 'journal' };
   function renderTabs() {
-    $('#tabs').innerHTML = `<div class="rail-logo" aria-hidden="true">${OB.icon('logo')}</div>` +
-      TABS.map(t => `<button type="button" role="tab" class="tab ${OB.ui.tab === t[0] ? 'on' : ''}" aria-selected="${OB.ui.tab === t[0]}" data-act="gotoTab" data-tab="${t[0]}">${OB.icon(TAB_ICON[t[0]])}<span>${t[1]}</span></button>`).join('') +
-      `<button type="button" class="tab rail-dice" data-act="toggleDice" aria-label="Dice">${OB.icon('dice')}<span>Dice</span></button>`;
+    const c = OB.char();
+    $('#tabs').innerHTML = TABS.map(([k, label]) => {
+      const text = k === 'character' ? (c.name || 'Character') : label;
+      return `<button type="button" role="tab" class="tab ${OB.ui.tab === k ? 'on' : ''}" aria-selected="${OB.ui.tab === k}" data-act="gotoTab" data-tab="${k}">${E(text)}</button>`;
+    }).join('');
   }
 
   let lastTab = null;
@@ -66,19 +30,82 @@
     if (lastTab !== OB.ui.tab) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); lastTab = OB.ui.tab; }
   }
 
+  const isOpen = k => (OB.ui.open['dsec:' + k] != null ? !!OB.ui.open['dsec:' + k] : k === 'dice');
+  function renderDrawer() {
+    const sec = (key, title, icon, html) => `<details class="dsec dsec-${key}" data-key="dsec:${key}" ${isOpen(key) ? 'open' : ''}>
+      <summary><span class="dsec-t">${OB.icon(icon)}<span>${title}</span></span>${OB.icon('chevDown', 'chev')}</summary>
+      <div class="dsec-b">${html}</div></details>`;
+    $('#drawer-body').innerHTML = [
+      sec('dice', 'Dice', 'dice', '<div id="dice" class="dice"></div>'),
+      sec('oracles', 'Oracles', 'oracle', OB.drawerOracles()),
+      sec('moves', 'Moves', 'moves', OB.drawerMoves()),
+      sec('journal', 'Journal', 'listEdit', OB.drawerJournal())
+    ].join('');
+    if (OB.renderDice) OB.renderDice();
+  }
+
+  function renderMenu() {
+    const d = OB.store.data;
+    $('#menu-body').innerHTML = `
+      <div class="mhead"><h2>Campaigns</h2><button type="button" class="ib" data-act="closeMenu" aria-label="Close menu">${OB.icon('close')}</button></div>
+      <div class="mlist">${d.chars.map(x => `<div class="mrow ${x.id === d.active ? 'on' : ''}">
+          <button type="button" class="mpick" data-act="selectChar" data-id="${x.id}">
+            <span class="mname">${E(x.campaignName || 'New Campaign - ' + (x.name || 'Unnamed'))}</span>
+            <small>${E([x.heritage, x.cls].filter(Boolean).join(' · ') || 'No class yet')}</small></button>
+          <button type="button" class="ib sm" data-act="delChar" data-id="${x.id}" aria-label="Delete campaign">${OB.icon('trash')}</button>
+        </div>`).join('')}</div>
+      <button type="button" class="btn wide primary" data-act="newChar">${OB.icon('plus')}New campaign</button>
+      <div class="msec">Campaign data</div>
+      <button type="button" class="mbtn" data-act="exportOne">${OB.icon('download')}Export campaign data</button>
+      <button type="button" class="mbtn" data-act="importFile">${OB.icon('upload')}Load campaign data</button>
+      <button type="button" class="mbtn" data-act="exportJournal">${OB.icon('listEdit')}Export journal (.md)</button>
+      <button type="button" class="mbtn" data-act="exportAll">${OB.icon('download')}Export all campaigns</button>
+      <button type="button" class="mbtn" data-act="dupChar">${OB.icon('copy')}Duplicate campaign</button>
+      <button type="button" class="mbtn" data-act="printSheet">${OB.icon('print')}Print character</button>
+      <div class="msec">Accent</div>
+      <div class="swatches">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
+      <div class="mfoot"><span id="save-badge"></span></div>`;
+  }
+
+  OB.updateSaveBadge = function () {
+    const b = $('#save-badge'); if (!b) return;
+    const s = OB.store;
+    if (!s.storageOK) { b.className = 'warn'; b.textContent = 'Autosave is off in this browser. Export to keep your data.'; return; }
+    b.className = '';
+    const t = s.lastSaved ? new Date(s.lastSaved) : null;
+    b.textContent = t ? 'Saved ' + t.getHours().toString().padStart(2, '0') + ':' + t.getMinutes().toString().padStart(2, '0') : 'Autosave on';
+  };
+
   OB.refresh = function () {
     const a = document.activeElement;
     const keep = a && a.id && a !== document.body ? { id: a.id, s: a.selectionStart, e: a.selectionEnd } : null;
     const y = window.scrollY;
-    renderTop(); renderHud(); renderTabs(); renderView(); OB.renderDice();
+    renderTabs(); renderView(); renderDrawer(); renderMenu();
+    $('#drawer-fab').innerHTML = OB.icon(OB.ui.drawer ? 'chevRight' : 'chevLeft');
+    document.body.classList.toggle('drawer-open', !!OB.ui.drawer);
+    document.body.classList.toggle('menu-open', !!OB.ui.menu);
+    $('#menu').classList.toggle('open', !!OB.ui.menu);
+    OB.updateSaveBadge();
     window.scrollTo(0, y);
-    const sb = document.querySelector('.stickybar'); if (sb) document.documentElement.style.setProperty('--sticky-h', sb.offsetHeight + 'px');
     if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (e) { /* not text */ } } }
-    document.body.classList.toggle('dice-open', !!OB.ui.diceOpen);
+  };
+
+  function setMenu(on) { OB.ui.menu = !!on; document.body.classList.toggle('menu-open', OB.ui.menu); $('#menu').classList.toggle('open', OB.ui.menu); if (OB.ui.menu) renderMenu(); }
+
+  /* open a drawer section (and the drawer itself) */
+  OB.openDrawer = function (sec) {
+    OB.ui.drawer = true;
+    if (sec) OB.ui.open['dsec:' + sec] = true;
+    OB.refresh();
+    if (sec) {
+      const el = document.querySelector(`details.dsec-${sec}`);
+      if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
   };
 
   /* ---------- modal builders ---------- */
   const rankOpts = (val, only) => OB.RANKS.filter(r => !only || only.includes(r.key)).map(r => `<option value="${r.key}" ${r.key === val ? 'selected' : ''}>${r.name}</option>`).join('');
+  const $m = (s, m) => m.querySelector(s);
 
   function trackModal(kind, o) {
     o = o || {};
@@ -89,11 +116,10 @@
         <label class="lbl">Rank<select id="tm-rank">${rankOpts(o.rank || 'dangerous', o.ranks)}</select></label>`,
       ok: 'Create',
       onOk: m => {
-        const name = $('#tm-name', m).value.trim();
+        const name = $m('#tm-name', m).value.trim();
         if (!name) { OB.toast('Give it a name.'); return false; }
-        OB.addTrack({ kind, name, rank: $('#tm-rank', m).value, bg: !!o.bg });
+        OB.addTrack({ kind, name, rank: $m('#tm-rank', m).value, bg: !!o.bg });
         OB.refresh();
-        if (OB.ui.tab !== 'tracks' && !o.stay) { OB.toast(k.one + ' added to Tracks.'); }
       }
     });
   }
@@ -103,7 +129,7 @@
       title: 'New bond',
       html: `<label class="lbl">Person or community<input type="text" id="bm-name" autocomplete="off"></label><label class="lbl">Note<input type="text" id="bm-note" autocomplete="off"></label>`,
       ok: 'Add bond (+1 tick)',
-      onOk: m => { const n = $('#bm-name', m).value.trim(); if (!n) { OB.toast('Give the bond a name.'); return false; } OB.addBond(n, $('#bm-note', m).value.trim()); OB.refresh(); if (after) after(); }
+      onOk: m => { const n = $m('#bm-name', m).value.trim(); if (!n) { OB.toast('Give the bond a name.'); return false; } OB.addBond(n, $m('#bm-note', m).value.trim()); OB.refresh(); if (after) after(); }
     });
   }
 
@@ -111,7 +137,6 @@
     const c = OB.char();
     const next = OB.tierEligible(c);
     if (!next) return;
-    const allCls = OB.CLASSES.map(x => x.key);
     OB.modal({
       title: `Ascend to tier ${next} — ${OB.TIERS[next - 1].title}`,
       ok: 'Ascend',
@@ -119,26 +144,26 @@
         <div class="asc-opts">
           <label class="opt"><input type="checkbox" value="stat"><span><strong>Hone your gifts.</strong> Add +1 to a stat (max +4).
             <select id="as-stat">${OB.STATS.map(s => `<option value="${s.key}" ${c.stats[s.key] >= 4 ? 'disabled' : ''}>${s.name} (${OB.sgn(c.stats[s.key])})</option>`).join('')}</select></span></label>
-          <label class="opt"><input type="checkbox" value="focus" ${OB.maxFocus(c) >= 6 ? 'disabled' : ''}><span><strong>Deepen your power.</strong> Add +1 to your max focus (max +6). Now +${OB.maxFocus(c)}.</span></label>
+          <label class="opt"><input type="checkbox" value="focus" ${OB.maxFocus(c) >= 6 ? 'disabled' : ''}><span><strong>Deepen your power.</strong> Add +1 to your max focus (max +6). Now ${OB.sgn(OB.maxFocus(c))}.</span></label>
           <label class="opt"><input type="checkbox" value="blood" ${c.legacyAwakened ? 'disabled' : ''}><span><strong>Awaken your blood.</strong> Gain the legacy ability of your heritage.</span></label>
-          <label class="opt"><input type="checkbox" value="craft"><span><strong>Master your craft.</strong> Upgrade an asset without spending experience (mark an ability on its card).</span></label>
+          <label class="opt"><input type="checkbox" value="craft"><span><strong>Master your craft.</strong> Upgrade an asset without spending experience.</span></label>
           <label class="opt"><input type="checkbox" value="path" ${next < 3 ? 'disabled' : ''}><span><strong>Walk a new path</strong> (tier 3 or 4 only). Gain the Foundation card of a path of another class.
-            <select id="as-cls">${allCls.map(x => `<option>${x}</option>`).join('')}</select> <select id="as-path"></select></span></label>
+            <select id="as-cls">${OB.CLASSES.map(x => `<option>${x.key}</option>`).join('')}</select> <select id="as-path"></select></span></label>
         </div>`,
       onOpen: m => {
-        const fill = () => { const cls = $('#as-cls', m).value; $('#as-path', m).innerHTML = OB.CLASS[cls].paths.map(p => `<option>${p}</option>`).join(''); };
-        $('#as-cls', m).addEventListener('change', fill); fill();
-        m.addEventListener('change', e => {
-          const boxes = [...m.querySelectorAll('.asc-opts input[type=checkbox]')];
+        const fill = () => { const cls = $m('#as-cls', m).value; $m('#as-path', m).innerHTML = OB.CLASS[cls].paths.map(p => `<option>${p}</option>`).join(''); };
+        $m('#as-cls', m).addEventListener('change', fill); fill();
+        const boxes = [...m.querySelectorAll('.asc-opts input[type=checkbox]')];
+        boxes.forEach(b => { b.dataset.hard = b.disabled ? '1' : ''; });
+        m.addEventListener('change', () => {
           const n = boxes.filter(b => b.checked).length;
           boxes.forEach(b => { if (!b.checked) b.disabled = n >= 2 || b.dataset.hard === '1'; });
         });
-        m.querySelectorAll('.asc-opts input[type=checkbox]').forEach(b => { if (b.disabled) b.dataset.hard = '1'; });
       },
       onOk: m => {
         const picks = [...m.querySelectorAll('.asc-opts input:checked')].map(b => b.value);
         if (picks.length !== 2) { OB.toast('Choose exactly two.'); return false; }
-        const ok = OB.ascend({ picks, stat: $('#as-stat', m).value, pathCls: $('#as-cls', m).value, path: $('#as-path', m).value });
+        const ok = OB.ascend({ picks, stat: $m('#as-stat', m).value, pathCls: $m('#as-cls', m).value, path: $m('#as-path', m).value });
         if (ok) { if (picks.includes('craft')) OB.toast('Master your craft: mark an ability on any asset for free.'); OB.refresh(); }
       }
     });
@@ -164,27 +189,26 @@
         <p class="muted small">At creation, your class card, one Foundation, and one talent or companion are free. Untick the box for those.</p>`,
       onOpen: m => {
         const sync = () => {
-          const t = $('#am-type', m).value;
-          m.querySelectorAll('[data-for]').forEach(el => { const f = el.dataset.for; el.hidden = !(f === t || (f === 'name' && t !== 'path' && !(t === 'artifact' && $('#am-art', m).value !== '-1'))); });
-          $('#am-xp-l', m).textContent = (t === 'artifact' ? 'Spend 2 experience' : 'Spend 3 experience') + ` (available: ${OB.xpAvail(c)})`;
-          if (t === 'artifact') $('#am-name', m).placeholder = 'Custom artifact name';
+          const t = $m('#am-type', m).value;
+          m.querySelectorAll('[data-for]').forEach(el => { const f = el.dataset.for; el.hidden = !(f === t || (f === 'name' && t !== 'path' && !(t === 'artifact' && $m('#am-art', m).value !== '-1'))); });
+          $m('#am-xp-l', m).textContent = (t === 'artifact' ? 'Spend 2 experience' : 'Spend 3 experience') + ` (available: ${OB.xpAvail(c)})`;
         };
         m.addEventListener('change', sync); sync();
       },
       onOk: m => {
-        const t = $('#am-type', m).value;
+        const t = $m('#am-type', m).value;
         const cost = t === 'artifact' ? 2 : 3;
-        const pay = $('#am-xp', m).checked;
+        const pay = $m('#am-xp', m).checked;
         if (pay && OB.xpAvail(c) < cost) { OB.toast('Not enough experience. Untick the box to add it free.'); return false; }
         if (t === 'path') {
-          const [cls, path] = $('#am-path', m).value.split('|'); const i = +$('#am-tier', m).value;
+          const [cls, path] = $m('#am-path', m).value.split('|'); const i = +$m('#am-tier', m).value;
           if (c.assets.some(a => a.type === 'path' && a.path === path && a.pathIdx === i)) { OB.toast('You already have that card.'); return false; }
           OB.addPathCard(cls, path, i);
-        } else if (t === 'artifact' && $('#am-art', m).value !== '-1') {
-          const a = OB.ARTIFACTS[+$('#am-art', m).value];
+        } else if (t === 'artifact' && $m('#am-art', m).value !== '-1') {
+          const a = OB.ARTIFACTS[+$m('#am-art', m).value];
           OB.addAsset({ type: 'artifact', name: a.name, sub: a.sub, text: a.text, abilities: a.abilities.map((x, j) => ({ text: x, on: j === 0 })) });
         } else {
-          const name = $('#am-name', m).value.trim();
+          const name = $m('#am-name', m).value.trim();
           if (!name) { OB.toast('Give it a name.'); return false; }
           OB.addAsset({ type: t, name, sub: t === 'talent' ? 'Talent' : t === 'companion' ? 'Companion' : t === 'spell' ? 'Spell' : '' });
         }
@@ -196,46 +220,47 @@
 
   /* ---------- actions ---------- */
   const cid = el => el.dataset.id;
+  const trackOf = id => OB.char().tracks.find(t => t.id === id);
   const A = {
+    /* navigation */
     gotoTab(el) { OB.ui.tab = el.dataset.tab; OB.refresh(); window.scrollTo(0, 0); },
     gotoMove(el) {
-      const name = el.dataset.move; const m = OB.MOVE[name]; if (!m) return;
-      OB.ui.tab = 'moves'; OB.ui.moveFilter = ''; OB.ui.moveCat = 'all'; OB.ui.open['move:' + name] = true;
-      OB.refresh();
-      const t = document.getElementById('mv-' + OB.slug(name)); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      const name = el.dataset.move; if (!OB.MOVE[name]) return;
+      OB.ui.moveFilter = ''; OB.ui.moveCat = 'all'; OB.ui.open['move:' + name] = true;
+      OB.openDrawer('moves');
+      requestAnimationFrame(() => { const t = document.getElementById('mv-' + OB.slug(name)); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
     },
-    toggleDice() { OB.ui.diceOpen = !OB.ui.diceOpen; OB.renderDice(); document.body.classList.toggle('dice-open', !!OB.ui.diceOpen); },
+    toggleDrawer() { OB.ui.drawer = !OB.ui.drawer; OB.refresh(); },
+    openDsec(el) { OB.openDrawer(el.dataset.s); },
+    menu() { setMenu(!OB.ui.menu); },
+    closeMenu() { setMenu(false); },
+    palette() { setMenu(false); OB.palette(); },
+    search() { OB.palette(); },
+    theme(el) { OB.setTheme(el.dataset.t); renderMenu(); },
 
-    /* vitals */
+    /* vitals & character */
     setVital(el) { const c = OB.char(); const k = el.dataset.k, v = +el.dataset.v; OB.applyEffects({ [k]: v - c[k] }); OB.refresh(); },
-    vital(el) { OB.applyEffects({ [el.dataset.k]: +el.dataset.d }); OB.refresh(); },
-    burnHud() { const c = OB.char(); c.momentum = OB.momentumReset(c); OB.save(); OB.refresh(); },
+    burnMomentum() { const c = OB.char(); c.momentum = OB.momentumReset(c); OB.save(); OB.toast('Momentum burned. It is now ' + OB.sgn(c.momentum) + '.'); OB.refresh(); },
     stat(el) { const c = OB.char(); const k = el.dataset.k; c.stats[k] = OB.clamp(c.stats[k] + (+el.dataset.d), 0, 4); OB.save(); OB.refresh(); },
     xp(el) { const c = OB.char(); const k = el.dataset.k; c[k] = Math.max(0, c[k] + (+el.dataset.d)); OB.save(); OB.refresh(); },
-    oathSeed() {
-      const c = OB.char(); const info = OB.CLASS_INFO[c.cls]; if (!info) return;
-      const i = OB.rint(6);
-      OB.logNote(`Oath seed (${c.cls}, d6=${i}): ${info.seeds[i - 1]}`);
-    },
-    classQuestions() {
-      const c = OB.char(); const info = OB.CLASS_INFO[c.cls]; if (!info) return;
-      OB.modal({ title: c.cls + ' — questions', ok: false, cancel: 'Close', html: `<h4>Background</h4><ul>${info.bg.map(q => `<li>${E(q)}</li>`).join('')}</ul><h4>Bonds</h4><ul>${info.bond.map(q => `<li>${E(q)}</li>`).join('')}</ul><h4>Oath seeds (d6)</h4><ol>${info.seeds.map(q => `<li>${E(q)}</li>`).join('')}</ol>` });
-    },
     semiRandom() { OB.confirm('This replaces your stats, heritage, upbringing, class, path, and class cards. Your notes stay. Continue?', 'Roll it', () => { OB.semiRandom(); OB.refresh(); }); },
+    newBgOath() { trackModal('oath', { title: 'Background oath', ranks: ['extreme', 'epic'], rank: 'extreme', bg: true }); },
+    portrait() { $('#portrait-in').click(); },
+    portraitDel() { OB.char().portrait = ''; OB.save(); OB.refresh(); },
 
-    /* bonds */
+    /* bonds & tiers */
     addBond() { bondModal(); },
     delBond(el) { const c = OB.char(); c.bonds = c.bonds.filter(b => b.id !== cid(el)); OB.save(); OB.refresh(); },
     rollEpilogue() { OB.rollProgress('bonds', 'Write Your Epilogue'); },
-
-    /* tiers & assets */
     ascend() { ascendModal(); },
     advance(el) {
       const n = +el.dataset.n;
       if (!OB.spendXp(n)) return;
       OB.toast(`Spent ${n} XP. ${n === 3 ? 'Add a new asset.' : 'Mark an ability on an asset.'}`);
-      OB.ui.tab = 'assets'; OB.refresh();
+      OB.ui.tab = 'character'; OB.refresh();
     },
+
+    /* assets */
     newAsset() { assetModal(); },
     addPathCard(el) {
       const c = OB.char(); const { cls, path } = el.dataset; const i = +el.dataset.i;
@@ -243,7 +268,7 @@
         title: `Add ${path} — ${OB.PATH_TIERS[i]}`, ok: 'Add',
         html: `<label class="chk"><input type="checkbox" id="pc-xp" checked><span class="box"></span><span>Spend 3 experience (available: ${OB.xpAvail(c)})</span></label><p class="muted small">Untick if it is free: your starting Foundation, or a path gained when you Ascend.</p>`,
         onOk: m => {
-          const pay = $('#pc-xp', m).checked;
+          const pay = $m('#pc-xp', m).checked;
           if (pay && OB.xpAvail(c) < 3) { OB.toast('Not enough experience.'); return false; }
           OB.addPathCard(cls, path, i);
           if (pay) OB.spendXp(3);
@@ -251,43 +276,103 @@
         }
       });
     },
-    addArtifact(el) {
-      const a = OB.ARTIFACTS[+el.dataset.i];
-      OB.addAsset({ type: 'artifact', name: a.name, sub: a.sub, text: a.text, abilities: a.abilities.map((x, j) => ({ text: x, on: j === 0 })) });
-      OB.toast(a.name + ' added to Assets.'); OB.refresh();
-    },
-    delAsset(el) { const c = OB.char(); const a = c.assets.find(x => x.id === cid(el)); OB.confirm(`Remove “${a.name || 'this asset'}”?`, 'Remove', () => { c.assets = c.assets.filter(x => x.id !== a.id); OB.save(); OB.refresh(); }); },
-    toggleAbility(el) { const a = OB.char().assets.find(x => x.id === cid(el)); const ab = a.abilities[+el.dataset.i]; ab.on = !ab.on; OB.save(); OB.refresh(); },
+    delAsset(el) { const c = OB.char(); const a = c.assets.find(x => x.id === cid(el)); if (!a) return; OB.confirm(`Remove “${a.name || 'this asset'}”?`, 'Remove', () => { c.assets = c.assets.filter(x => x.id !== a.id); OB.save(); OB.refresh(); }); },
+    toggleAbility(el) { const a = OB.char().assets.find(x => x.id === cid(el)); if (!a) return; const ab = a.abilities[+el.dataset.i]; ab.on = !ab.on; OB.save(); OB.refresh(); },
     addAbility(el) { const a = OB.char().assets.find(x => x.id === cid(el)); a.abilities.push({ text: '', on: false }); OB.save(); OB.refresh(); },
     delAbility(el) { const a = OB.char().assets.find(x => x.id === cid(el)); a.abilities.splice(+el.dataset.i, 1); OB.save(); OB.refresh(); },
     upgradeAsset(el) {
       const c = OB.char(); const a = c.assets.find(x => x.id === cid(el));
       const ab = a.abilities.find(x => !x.on); if (!ab) return;
       OB.modal({ title: 'Upgrade ' + (a.name || 'asset'), ok: 'Upgrade', html: `<label class="chk"><input type="checkbox" id="up-xp" checked><span class="box"></span><span>Spend 2 experience (available: ${OB.xpAvail(c)})</span></label><p class="muted small">Untick for a free upgrade (Master your craft).</p>`,
-        onOk: m => { const pay = $('#up-xp', m).checked; if (pay && OB.xpAvail(c) < 2) { OB.toast('Not enough experience.'); return false; } ab.on = true; if (pay) OB.spendXp(2); OB.save(); OB.refresh(); } });
+        onOk: m => { const pay = $m('#up-xp', m).checked; if (pay && OB.xpAvail(c) < 2) { OB.toast('Not enough experience.'); return false; } ab.on = true; if (pay) OB.spendXp(2); OB.save(); OB.refresh(); } });
     },
-    setComp(el) { const a = OB.char().assets.find(x => x.id === cid(el)); a.health = +el.dataset.v; OB.save(); OB.refresh(); },
+    setComp(el) { const a = OB.char().assets.find(x => x.id === cid(el)); if (!a) return; a.health = +el.dataset.v; OB.save(); OB.refresh(); },
     compHarm(el) { const n = document.getElementById('cd-' + cid(el)); OB.companionEndure(cid(el), n ? n.value : 1); },
+    addArtifact(el) {
+      const a = OB.ARTIFACTS[+el.dataset.i];
+      OB.addAsset({ type: 'artifact', name: a.name, sub: a.sub, text: a.text, abilities: a.abilities.map((x, j) => ({ text: x, on: j === 0 })) });
+      OB.toast(a.name + ' added to Assets.'); OB.refresh();
+    },
+    classQuestions() { OB.ui.open.classq = true; OB.refresh(); },
 
-    /* tracks */
-    newTrack(el, ev) { if (ev) ev.preventDefault(); const k = el.dataset.kind; trackModal(k, { ranks: k === 'oath' ? null : null }); },
-    newBgOath() { trackModal('oath', { title: 'Background oath', ranks: ['extreme', 'epic'], rank: 'extreme', bg: true, stay: true }); },
-    delTrack(el) { const c = OB.char(); const t = c.tracks.find(x => x.id === cid(el)); OB.confirm(`Delete “${t.name || 'this track'}”?`, 'Delete', () => { OB.removeTrack(t.id); OB.refresh(); }); },
+    /* challenges */
+    newTrack(el) { trackModal(el.dataset.kind); },
+    newJourney() { const n = document.getElementById('uj-name').value.trim(); if (!n) { OB.toast('Name the journey.'); return; } OB.addTrack({ kind: 'journey', name: n, rank: document.getElementById('uj-rank').value }); OB.toast('Journey added to Challenges.'); OB.refresh(); },
+    delTrack(el) { const t = trackOf(cid(el)); if (!t) return; OB.confirm(`Delete “${t.name || 'this track'}”?`, 'Delete', () => { OB.removeTrack(t.id); OB.refresh(); }); },
+    setBoxes(el) {
+      const t = trackOf(cid(el)); if (!t) return;
+      const v = +el.dataset.v, cur = Math.floor(t.ticks / 4);
+      t.ticks = (cur === v && t.ticks % 4 === 0) ? (v - 1) * 4 : v * 4;
+      OB.save(); OB.refresh();
+    },
+    setRank(el) { const t = trackOf(cid(el)); if (!t) return; t.rank = el.dataset.rank; OB.save(); OB.refresh(); },
     markTrack(el) { OB.markTrack(cid(el)); OB.refresh(); },
     unmarkTrack(el) { OB.unmarkTrack(cid(el)); OB.refresh(); },
-    tickTrack(el) { OB.tickTrack(cid(el), +el.dataset.d); OB.refresh(); },
-    doneTrack(el) { const t = OB.char().tracks.find(x => x.id === cid(el)); t.done = !t.done; OB.save(); OB.refresh(); },
+    doneTrack(el) { const t = trackOf(cid(el)); if (!t) return; t.done = !t.done; OB.save(); OB.refresh(); },
     toggleInitiative() { const c = OB.char(); c.initiative = !c.initiative; OB.save(); OB.refresh(); },
     harmFoe(el) { const n = document.getElementById('harm-' + cid(el)); const h = Math.max(1, parseInt(n && n.value, 10) || 1); OB.markTrack(cid(el), h); OB.toast(`${h} harm marked.`); OB.refresh(); },
     rollTrack(el) { OB.rollProgress(cid(el), el.dataset.move); },
     rollProgress(el) { OB.rollProgress(el.dataset.track, el.dataset.move); },
     rollProgressSel(el) { const s = document.getElementById(el.dataset.sel); if (s && s.value) OB.rollProgress(s.value, el.dataset.move); },
-    rollProgressPanel() { const s = document.getElementById('dp-track'); if (!s || !s.value) { OB.toast('Choose a track.'); return; } const t = OB.char().tracks.find(x => x.id === s.value); OB.rollProgress(s.value, s.value === 'bonds' ? 'Write Your Epilogue' : (OB.KINDS.find(k => k.key === t.kind) || {}).roll); },
+    rollProgressPanel() { const s = document.getElementById('dp-track'); if (!s || !s.value) { OB.toast('Choose a track.'); return; } const t = trackOf(s.value); OB.rollProgress(s.value, s.value === 'bonds' ? 'Write Your Epilogue' : t ? (OB.KINDS.find(k => k.key === t.kind) || {}).roll : 'Progress roll'); },
+    addFoe(el) { OB.addFoe(el.dataset.name, el.dataset.rank); },
+    addCustomFoe() { const n = document.getElementById('cf-name').value.trim(); if (!n) { OB.toast('Name the foe.'); return; } OB.addFoe(n, document.getElementById('cf-rank').value); },
+    addPack() { const [n, r] = document.getElementById('pk-foe').value.split('|'); OB.addPack(n, r, document.getElementById('pk-size').value); },
+    addFoeQuick() { const n = document.getElementById('ef-name').value.trim(); if (!n) { OB.toast('Name the foe.'); return; } OB.addFoe(n, document.getElementById('ef-rank').value); },
 
-    /* rolls */
+    /* campaign & amarin */
+    addFaction() { const c = OB.char(); c.factions.push({ id: OB.uid('f'), name: '', type: '', influence: '', sphere: '', notes: '' }); OB.save(); OB.refresh(); },
+    delFaction(el) { const c = OB.char(); c.factions = c.factions.filter(f => f.id !== cid(el)); OB.save(); OB.refresh(); },
+    rollTruth(el) {
+      const c = OB.char(); c.truths = c.truths || {};
+      const t = OB.TRUTHS.find(x => x.key === el.dataset.key); if (!t) return;
+      const r = OB.d100();
+      const pick = r.v <= 33 ? 0 : r.v <= 66 ? 1 : 2;
+      c.truths[t.key] = Object.assign(c.truths[t.key] || {}, { pick });
+      OB.logPush({ kind: 'oracle', label: t.name, parts: [{ title: t.name, roll: r.v, text: t.opts[pick][0], match: r.match, more: [] }] });
+    },
+    truthNote(el) {
+      const c = OB.char(); const t = OB.TRUTHS.find(x => x.key === el.dataset.key); const st = (c.truths || {})[t.key];
+      if (!st || st.pick == null) return;
+      c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: t.name + ' — quest starter', text: t.opts[st.pick][1] });
+      OB.save(); OB.toast('Added to the journal.'); OB.refresh();
+    },
+    hexSel(el) {
+      const c = OB.char(); const k = el.dataset.k;
+      c.hexes[k] = c.hexes[k] || { name: '', control: '', note: '' };
+      OB.ui.hex = k; OB.save(); OB.refresh();
+    },
+    hexClear(el) { const c = OB.char(); const k = el.dataset.k; delete c.hexes[k]; OB.ui.hex = null; OB.save(); OB.refresh(); },
+    hexRollPlace() {
+      const c = OB.char(); const k = OB.ui.hex; if (!k) return;
+      c.hexes[k] = c.hexes[k] || { name: '', control: '', note: '' };
+      const e = OB.rollOracle('location');
+      c.hexes[k].name = e.parts[0].text;
+      OB.save(); OB.refresh();
+    },
+    regionNote(el) {
+      const info = OB.REGION_INFO[el.dataset.name]; const c = OB.char();
+      c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: el.dataset.name + ' — quest starter', text: OB.pick(info.quests) });
+      OB.save(); OB.toast('Quest starter added to the journal.'); OB.refresh();
+    },
+
+    /* oracles */
+    rollOracle(el) { OB.rollOracle(el.dataset.key); },
+    rollAsk(el) { OB.rollAsk(el.dataset.odds); },
+    rollCombo(el) { OB.rollCombo(el.dataset.id); },
+    rollName() { OB.rollName(); },
+    rollTableData(el) { OB.rollTableData(el.dataset.move); },
+    rollD100() { const r = OB.d100(); OB.logPush({ kind: 'oracle', label: 'd100', parts: [{ title: 'd100', roll: r.v, text: String(r.v), match: r.match, more: [] }] }); },
+    rollDie(el) { OB.rollDie(+el.dataset.n); },
+    oracleGroup(el) { OB.ui.oracleGroup = el.dataset.g; OB.refresh(); },
+
+    /* moves & dice */
+    moveCat(el) { OB.ui.moveCat = el.dataset.cat; OB.refresh(); },
+    expandMoves(el) { const open = el.dataset.open === '1'; document.querySelectorAll('#drawer details.move').forEach(d => { d.open = open; OB.ui.open[d.dataset.key] = open; }); },
     rollStat(el) {
       const k = el.dataset.k;
       if (k === 'none') OB.rollAction({ label: 'Action roll (no stat)', statName: 'no stat', statVal: 0 });
+      else if (['health', 'spirit', 'supply'].includes(k)) OB.rollAction({ label: 'Action roll +' + k, statKey: k });
       else OB.rollAction({ label: 'Action roll +' + k, statKey: k });
     },
     rollMove(el) { OB.rollMove(el.dataset.move, el.dataset.stat); },
@@ -298,20 +383,12 @@
     swearOath() {
       const name = document.getElementById('so-name').value.trim();
       if (!name) { OB.toast('Write your oath first.'); return; }
-      const t = OB.addTrack({ kind: 'oath', name, rank: document.getElementById('so-rank').value });
-      OB.rollMove('Swear an Oath', 'presence'); void t;
+      OB.addTrack({ kind: 'oath', name, rank: document.getElementById('so-rank').value });
+      OB.rollMove('Swear an Oath', 'presence');
     },
-    addFoeQuick() { const n = document.getElementById('ef-name').value.trim(); if (!n) { OB.toast('Name the foe.'); return; } OB.addFoe(n, document.getElementById('ef-rank').value); },
-    newJourney() { const n = document.getElementById('uj-name').value.trim(); if (!n) { OB.toast('Name the journey.'); return; } OB.addTrack({ kind: 'journey', name: n, rank: document.getElementById('uj-rank').value }); OB.toast('Journey added to Tracks.'); OB.refresh(); },
     castSpell(el) { OB.castSpell(el.dataset.scope); },
-    rollOracle(el) { OB.rollOracle(el.dataset.key); },
-    rollAsk(el) { OB.rollAsk(el.dataset.odds); },
-    rollCombo(el) { OB.rollCombo(el.dataset.id); },
-    rollName() { OB.rollName(); },
-    rollTableData(el) { OB.rollTableData(el.dataset.move); },
-    rollD100() { const r = OB.d100(); OB.logPush({ kind: 'oracle', label: 'd100', parts: [{ title: 'd100', roll: r.v, text: String(r.v), match: r.match, more: [] }] }); },
-    rollDie(el) { OB.rollDie(+el.dataset.n); },
     adds(el) { if (el.dataset.set != null) OB.ui.add = +el.dataset.set; else OB.ui.add = OB.clamp(OB.ui.add + (+el.dataset.d), -5, 9); OB.renderDice(); },
+    rollDieLog() { OB.rollDie(6); },
     clearLog() { OB.confirm('Clear the roll log?', 'Clear', () => { OB.char().log = []; OB.save(); OB.refresh(); }); },
     burn(el) { OB.burn(cid(el)); },
 
@@ -326,7 +403,7 @@
       e.applied = e.applied || {}; e.applied['x' + i] = true;
       if (x.type === 'fx') OB.applyEffects(x.fx);
       else if (x.type === 'deb') { OB.markDeb(x.key, true); OB.toast(OB.DEBILITIES.find(d => d.key === x.key).name + ' marked.'); }
-      else if (x.type === 'table') { OB.rollTableData(x.move); return; }
+      else if (x.type === 'table') { OB.save(); OB.rollTableData(x.move); return; }
       else if (x.type === 'companion') { const a = c.assets.find(z => z.id === x.id); if (a) a.health = Math.min(a.maxHealth || 4, (a.health || 0) + x.delta); }
       else if (x.type === 'overreach') { OB.save(); OB.overreach(x.lack, x.track); return; }
       OB.save(); OB.refresh();
@@ -348,175 +425,56 @@
     },
     forsakeFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); e.applied = e.applied || {}; e.applied.rec = true; OB.forsakeOath(e.trackId); },
 
-    /* lists & filters */
-    moveCat(el) { OB.ui.moveCat = el.dataset.cat; OB.refresh(); },
-    expandMoves(el) { const open = el.dataset.open === '1'; document.querySelectorAll('#view details.move').forEach(d => { d.open = open; OB.ui.open[d.dataset.key] = open; }); },
-    oracleGroup(el) { OB.ui.oracleGroup = el.dataset.g; OB.refresh(); },
-    addFoe(el) { OB.addFoe(el.dataset.name, el.dataset.rank); },
-    addCustomFoe() { const n = document.getElementById('cf-name').value.trim(); if (!n) { OB.toast('Name the foe.'); return; } OB.addFoe(n, document.getElementById('cf-rank').value); },
-    addPack() { const [n, r] = document.getElementById('pk-foe').value.split('|'); OB.addPack(n, r, document.getElementById('pk-size').value); },
-
-    /* journal & world */
-    addEntry() { const c = OB.char(); c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: '', text: '' }); OB.save(); OB.refresh(); },
+    /* journal */
+    addEntry() { const c = OB.char(); c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: '', text: '', pinned: false }); OB.save(); OB.refresh(); },
     delEntry(el) { const c = OB.char(); OB.confirm('Delete this entry?', 'Delete', () => { c.journal = c.journal.filter(j => j.id !== cid(el)); OB.save(); OB.refresh(); }); },
-    regionNote(el) {
-      const info = OB.REGION_INFO[el.dataset.name]; const c = OB.char();
-      c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: el.dataset.name + ' — quest starter', text: OB.pick(info.quests) });
-      OB.save(); OB.toast('Quest starter added to the journal.');
-    },
-    rollTruth(el) {
-      const c = OB.char(); c.truths = c.truths || {}; const r = OB.rint(100);
-      const pick = r <= 33 ? 0 : r <= 66 ? 1 : 2; c.truths[el.dataset.key] = Object.assign(c.truths[el.dataset.key] || {}, { pick });
-      OB.save(); OB.toast(`d100 = ${r}`); OB.refresh();
-    },
-    truthNote(el) {
-      const c = OB.char(); const t = OB.TRUTHS.find(x => x.key === el.dataset.key); const st = c.truths[t.key];
-      c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: t.name + ' — quest starter', text: t.opts[st.pick][1] });
-      OB.save(); OB.toast('Added to the journal.');
-    },
+    pinEntry(el) { const j = OB.char().journal.find(x => x.id === cid(el)); if (!j) return; j.pinned = !j.pinned; OB.save(); OB.refresh(); },
 
-    /* characters & files */
+    /* campaigns & files */
+    selectChar(el) { OB.store.data.active = el.dataset.id; OB.saveNow(); setMenu(false); OB.refresh(); },
     newChar() {
-      const d = OB.store.data; const c = OB.newChar(); d.chars.push(c); d.active = c.id; OB.ui.tab = 'sheet'; OB.saveNow(); OB.refresh(); OB.toast('New character created.');
+      const d = OB.store.data; const c = OB.newChar(); c.campaignName = 'New Campaign'; d.chars.push(c); d.active = c.id;
+      OB.ui.tab = 'character'; OB.saveNow(); setMenu(false); OB.refresh(); OB.toast('New campaign created.');
     },
-    delChar() {
-      const d = OB.store.data; const c = OB.char();
-      OB.confirm(`Delete ${c.name || 'this character'}? Export first if you want a backup. This cannot be undone.`, 'Delete', () => {
-        d.chars = d.chars.filter(x => x.id !== c.id);
+    delChar(el) {
+      const d = OB.store.data; const target = el.dataset.id ? d.chars.find(x => x.id === el.dataset.id) : OB.char();
+      if (!target) return;
+      OB.confirm(`Delete “${target.campaignName || target.name || 'this campaign'}”? Export first if you want a backup. This cannot be undone.`, 'Delete', () => {
+        d.chars = d.chars.filter(x => x.id !== target.id);
         if (!d.chars.length) d.chars.push(OB.newChar());
-        d.active = d.chars[0].id; OB.saveNow(); OB.refresh();
+        if (!d.chars.some(x => x.id === d.active)) d.active = d.chars[0].id;
+        OB.saveNow(); OB.refresh();
       });
     },
-    dupChar() { const d = OB.store.data; const c = JSON.parse(JSON.stringify(OB.char())); c.id = OB.uid('c'); c.name = (c.name || 'Unnamed') + ' (copy)'; d.chars.push(c); d.active = c.id; OB.saveNow(); OB.refresh(); },
-    exportOne() { OB.exportData(false); closeMenu(); },
-    exportAll() { OB.exportData(true); closeMenu(); },
-    importFile() { closeMenu(); $('#file-in').click(); },
-    printSheet() { closeMenu(); window.print(); },
-    theme(el) { OB.setTheme(el.dataset.t); },
-    palette() { closeMenu(); OB.palette(); },
-    portrait() { $('#portrait-in').click(); },
-    portraitDel() { OB.char().portrait = ''; OB.save(); OB.refresh(); }
-  };
-  const closeMenu = () => { const m = $('#file-menu'); if (m) m.open = false; };
-
-  /* ---------- events ---------- */
-  document.addEventListener('click', e => {
-    const el = e.target.closest('[data-act]');
-    if (!el || el.disabled) return;
-    const fn = A[el.dataset.act];
-    if (!fn) return;
-    if (el.tagName === 'A') e.preventDefault();
-    fn(el, e);
-  });
-
-  function setBind(el, rerender) {
-    const c = OB.char();
-    const r = OB.resolve(c, el.dataset.bind);
-    if (!r) return;
-    let v = el.value;
-    const type = el.dataset.type;
-    if (type === 'bool') v = el.checked;
-    else if (type === 'num') v = parseInt(v, 10) || 0;
-    r.obj[r.key] = v;
-    const hook = el.dataset.hook; if (hook && OB.hooks[hook]) OB.hooks[hook]();
-    if (el.dataset.bind === 'deb' || /^deb\./.test(el.dataset.bind)) OB.hooks.deb();
-    OB.save();
-    return rerender;
-  }
-  document.addEventListener('input', e => {
-    const el = e.target;
-    if (el.matches('#move-search')) { OB.ui.moveFilter = el.value; OB.refresh(); return; }
-    if (el.matches('#oracle-search')) { OB.ui.oracleFilter = el.value; OB.refresh(); return; }
-    if (el.matches('#foe-search')) { OB.ui.foeFilter = el.value; OB.refresh(); return; }
-    if (!el.dataset.bind) return;
-    if (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'number') return;
-    setBind(el, false);
-    if (el.dataset.bind === 'name') { renderTop(); renderHud(); }
-  });
-  document.addEventListener('change', e => {
-    const el = e.target;
-    if (el.id === 'char-select') { OB.store.data.active = el.value; OB.saveNow(); OB.refresh(); return; }
-    if (el.id === 'file-in') { readFile(el.files[0]); el.value = ''; return; }
-    if (el.id === 'portrait-in') { readPortrait(el.files[0]); el.value = ''; return; }
-    if (el.dataset.actChange === 'nameHeritage') { OB.ui.nameHeritage = el.value; return; }
-    if (el.dataset.actChange === 'pickTruth') { const c = OB.char(); c.truths = c.truths || {}; c.truths[el.dataset.key] = Object.assign(c.truths[el.dataset.key] || {}, { pick: +el.value }); OB.save(); OB.refresh(); return; }
-    if (!el.dataset.bind) return;
-    setBind(el, true);
-    OB.refresh();
-  });
-  document.addEventListener('toggle', e => {
-    const el = e.target;
-    if (!el.dataset || !el.dataset.key) return;
-    OB.ui.open[el.dataset.key] = el.open;
-    if (el.classList.contains('oracle') && el.open && !el.querySelector('.otable')) {
-      el.querySelector('.acc-body').insertAdjacentHTML('beforeend', OB.oracleTable(el.dataset.key.slice(7)));
-    }
-  }, true);
-
-  function readFile(file) {
-    if (!file) return;
-    const rd = new FileReader();
-    rd.onload = () => {
-      let obj;
-      try { obj = JSON.parse(rd.result); } catch (err) { OB.toast('That file is not valid JSON.'); return; }
-      try {
-        const list = obj.kind === 'roster' ? obj.characters : obj.kind === 'character' ? [obj.character] : [obj];
-        const clash = (list || []).some(x => x && OB.store.data.chars.some(y => y.id === x.id));
-        const go = replace => {
-          try { const r = OB.importPayload(obj, replace); OB.ui.tab = 'sheet'; OB.refresh(); OB.toast(`Imported ${r.added + r.replaced} character${r.added + r.replaced === 1 ? '' : 's'}.`); }
-          catch (er) { OB.toast(er.message); }
-        };
-        if (clash) OB.modal({ title: 'Character already here', html: '<p>A character with the same ID is already saved in this browser. Replace it with the file, or import the file as a copy?</p>', ok: 'Replace it', cancel: 'Import as copy', onOk: () => go(true), onCancel: () => go(false) });
-        else go(false);
-      } catch (er) { OB.toast(er.message); }
-    };
-    rd.readAsText(file);
-  }
-
-  /* drag & drop a .json file anywhere */
-  window.addEventListener('dragover', e => e.preventDefault());
-  window.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f && /json$/i.test(f.name)) readFile(f); });
-
-
-  /* ---------- theme ---------- */
-  OB.THEMES = [['gold', 'Gold'], ['ember', 'Ember'], ['frost', 'Frost'], ['verdant', 'Verdant'], ['arcane', 'Arcane']];
-  OB.applyTheme = function () {
-    let t = 'gold'; try { t = localStorage.getItem('oathbound.theme') || 'gold'; } catch (e) { /* storage blocked */ }
-    document.documentElement.dataset.theme = t;
-  };
-  OB.setTheme = function (t) {
-    document.documentElement.dataset.theme = t;
-    try { localStorage.setItem('oathbound.theme', t); } catch (e) { /* storage blocked */ }
+    dupChar() { const d = OB.store.data; const c = JSON.parse(JSON.stringify(OB.char())); c.id = OB.uid('c'); c.name = (c.name || 'Unnamed') + ' (copy)'; c.campaignName = (c.campaignName || 'New Campaign') + ' (copy)'; d.chars.push(c); d.active = c.id; OB.saveNow(); OB.refresh(); },
+    exportOne() { setMenu(false); OB.exportData(false); },
+    exportAll() { setMenu(false); OB.exportData(true); },
+    exportJournal() {
+      const c = OB.char(); setMenu(false);
+      const lines = [`# ${c.campaignName || 'Campaign'}`, '', `Character: ${c.name || 'Unnamed'}`, ''];
+      c.journal.forEach(j => { lines.push(`## ${j.title || 'Untitled'}${j.date ? ' — ' + j.date : ''}`, '', j.text || '', ''); });
+      const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'oathbound-journal-' + (OB.slug(c.campaignName || c.name) || 'campaign') + '.md';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      OB.toast('Journal exported.');
+    },
+    importFile() { setMenu(false); $('#file-in').click(); },
+    printSheet() { setMenu(false); OB.ui.tab = 'character'; OB.refresh(); setTimeout(() => window.print(), 60); }
   };
 
-  /* ---------- portrait: crop square, shrink, store as data URL ---------- */
-  function readPortrait(file) {
-    if (!file) return;
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const S = 420, cv = document.createElement('canvas'); cv.width = cv.height = S;
-      const side = Math.min(img.width, img.height);
-      cv.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 4 > 0 ? (img.height - side) / 4 : 0, side, side, 0, 0, S, S);
-      URL.revokeObjectURL(url);
-      OB.char().portrait = cv.toDataURL('image/jpeg', 0.82);
-      OB.save(); OB.refresh(); OB.toast('Portrait set.');
-    };
-    img.onerror = () => OB.toast('Could not read that image.');
-    img.src = url;
-  }
-
-  /* ---------- command palette (Ctrl/Cmd+K or /) ---------- */
+  /* ---------- palette (Ctrl/Cmd+K or /) ---------- */
   OB.palette = function () {
     const items = [];
-    TABS.forEach(t => items.push({ k: 'Go to', n: t[1], run: () => A.gotoTab({ dataset: { tab: t[0] } }) }));
+    TABS.forEach(t => items.push({ k: 'Go to', n: t[1] || OB.char().name || 'Character', run: () => A.gotoTab({ dataset: { tab: t[0] } }) }));
     OB.MOVES.forEach(m => items.push({ k: 'Move', n: m.name, h: OB.cap(m.cat), run: () => A.gotoMove({ dataset: { move: m.name } }) }));
     Object.keys(OB.ORACLES).forEach(k => items.push({ k: 'Oracle', n: OB.ORACLES[k].title, h: 'roll', run: () => OB.rollOracle(k) }));
     OB.ODDS.forEach(o => items.push({ k: 'Oracle', n: 'Ask the Oracle — ' + o.name, h: o.min + '+', run: () => OB.rollAsk(o.key) }));
     OB.FOES.forEach(g => g.list.forEach(f => items.push({ k: 'Foe', n: f[0], h: f[1] + ' · add to Fights', run: () => OB.addFoe(f[0], f[1]) })));
-    [['New oath', () => A.newTrack({ dataset: { kind: 'oath' } })], ['New journey', () => A.newTrack({ dataset: { kind: 'journey' } })], ['Add bond', () => A.addBond()],
-      ['Add asset', () => A.newAsset()], ['Roll d100', () => A.rollD100()], ['Export JSON', () => OB.exportData(false)], ['Import JSON', () => $('#file-in').click()],
-      ['New character', () => A.newChar()]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
+    [['New vow', () => trackModal('oath')], ['New journey', () => trackModal('journey')], ['Add bond', () => bondModal()],
+      ['Add asset', () => assetModal()], ['Roll d100', () => A.rollD100()], ['Export campaign JSON', () => OB.exportData(false)], ['Load campaign JSON', () => $('#file-in').click()],
+      ['New campaign', () => A.newChar()], ['Open journal', () => OB.openDrawer('journal')]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
     let sel = 0, list = items;
     const close = () => { const m = document.getElementById('modal'); if (m) m.remove(); };
     const draw = m => {
@@ -541,50 +499,164 @@
       }
     });
   };
+
+  /* ---------- theme ---------- */
+  OB.THEMES = [['gold', 'Gold'], ['ember', 'Ember'], ['frost', 'Frost'], ['verdant', 'Verdant'], ['arcane', 'Arcane']];
+  OB.applyTheme = function () {
+    let t = 'gold'; try { t = localStorage.getItem('oathbound.theme') || 'gold'; } catch (e) { /* storage blocked */ }
+    document.documentElement.dataset.theme = t;
+  };
+  OB.setTheme = function (t) {
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('oathbound.theme', t); } catch (e) { /* storage blocked */ }
+  };
+
+  /* ---------- portrait: crop square, shrink, store as data URL ---------- */
+  function readPortrait(file) {
+    if (!file) return;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const S = 360, cv = document.createElement('canvas'); cv.width = cv.height = S;
+      const side = Math.min(img.width, img.height);
+      cv.getContext('2d').drawImage(img, (img.width - side) / 2, Math.max(0, (img.height - side) / 4), side, side, 0, 0, S, S);
+      URL.revokeObjectURL(url);
+      OB.char().portrait = cv.toDataURL('image/jpeg', 0.82);
+      OB.save(); OB.refresh(); OB.toast('Portrait set.');
+    };
+    img.onerror = () => OB.toast('Could not read that image.');
+    img.src = url;
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-act]');
+    if (!el || el.disabled) return;
+    const fn = A[el.dataset.act];
+    if (!fn) return;
+    if (el.closest('summary')) e.preventDefault();          // buttons inside a header do not toggle it
+    if (el.tagName === 'A') e.preventDefault();
+    fn(el, e);
+  });
+
+  function setBind(el) {
+    const c = OB.char();
+    const r = OB.resolve(c, el.dataset.bind);
+    if (!r) return;
+    let v = el.value;
+    if (el.dataset.type === 'bool') v = el.checked;
+    else if (el.dataset.type === 'num') v = parseInt(v, 10) || 0;
+    r.obj[r.key] = v;
+    const hook = el.dataset.hook; if (hook && OB.hooks[hook]) OB.hooks[hook]();
+    if (/^deb\./.test(el.dataset.bind)) OB.hooks.deb();
+    OB.save();
+  }
+
+  document.addEventListener('input', e => {
+    const el = e.target;
+    if (el.matches('#move-search')) { OB.ui.moveFilter = el.value; OB.refresh(); return; }
+    if (el.matches('#oracle-search')) { OB.ui.oracleFilter = el.value; OB.refresh(); return; }
+    if (el.matches('#foe-search')) { OB.ui.foeFilter = el.value; OB.refresh(); return; }
+    if (el.matches('#journal-search')) { OB.ui.journalQ = el.value; OB.refresh(); return; }
+    if (!el.dataset.bind) return;
+    if (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'number') return;
+    setBind(el);
+    if (el.dataset.bind === 'name' || el.dataset.bind === 'campaignName') renderTabs();
+  });
+
+  document.addEventListener('change', e => {
+    const el = e.target;
+    if (el.id === 'file-in') { readFile(el.files[0]); el.value = ''; return; }
+    if (el.id === 'portrait-in') { readPortrait(el.files[0]); el.value = ''; return; }
+    if (el.dataset.actChange === 'pickTruth') {
+      const c = OB.char(); c.truths = c.truths || {}; const st = c.truths[el.dataset.key] = c.truths[el.dataset.key] || {};
+      if (el.value === '') delete st.pick; else st.pick = +el.value;
+      OB.save(); OB.refresh(); return;
+    }
+    if (el.dataset.actChange === 'setRegion') { OB.char().region = el.value; OB.save(); OB.refresh(); return; }
+    if (!el.dataset.bind) return;
+    setBind(el);
+    OB.refresh();
+  });
+
+  document.addEventListener('toggle', e => {
+    const el = e.target;
+    if (!el.dataset || !el.dataset.key) return;
+    OB.ui.open[el.dataset.key] = el.open;
+    if (el.classList.contains('oracle') && el.open && !el.querySelector('.otable')) {
+      el.querySelector('.acc-body').insertAdjacentHTML('beforeend', OB.oracleTable(el.dataset.key.slice(7)));
+    }
+  }, true);
+
   document.addEventListener('keydown', e => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '');
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); OB.palette(); }
     else if (e.key === '/' && !typing && !document.getElementById('modal')) { e.preventDefault(); OB.palette(); }
+    else if (e.key === 'Escape') {
+      if (document.getElementById('modal')) return;
+      if (OB.ui.menu) setMenu(false);
+      else if (!WIDE() && OB.ui.drawer) { OB.ui.drawer = false; OB.refresh(); }
+    }
   });
+
+  function readFile(file) {
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      let obj;
+      try { obj = JSON.parse(rd.result); } catch (err) { OB.toast('That file is not valid JSON.'); return; }
+      const list = obj && obj.kind === 'roster' ? obj.characters : obj && obj.kind === 'character' ? [obj.character] : [obj];
+      const clash = (list || []).some(x => x && OB.store.data.chars.some(y => y.id === x.id));
+      const go = replace => {
+        try {
+          const r = OB.importPayload(obj, replace);
+          OB.ui.tab = 'character'; OB.refresh();
+          OB.toast(`Imported ${r.added + r.replaced} campaign${r.added + r.replaced === 1 ? '' : 's'}.`);
+        } catch (er) { OB.toast(er.message); }
+      };
+      if (clash) OB.modal({ title: 'Campaign already here', html: '<p>A campaign with the same ID is already saved in this browser. Replace it with the file, or import the file as a copy?</p>', ok: 'Replace it', cancel: 'Import as copy', onOk: () => go(true), onCancel: () => go(false) });
+      else go(false);
+    };
+    rd.readAsText(file);
+  }
+
+  /* drag & drop a .json file anywhere */
+  window.addEventListener('dragover', e => e.preventDefault());
+  window.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f && /json$/i.test(f.name)) readFile(f); });
 
   /* ---------- boot ---------- */
   OB.boot = function () {
     OB.load();
     OB.applyTheme();
     $('#app').innerHTML = `
-      <div class="shell">
-        <nav id="tabs" class="rail" role="tablist" aria-label="Sections"></nav>
-        <div class="col">
-          <header class="masthead">
-            <div class="brand"><span class="mark">OATHBOUND</span><small>Character sheet · Waystone</small></div>
-            <div class="top-tools">
-              <span id="top-chars"></span>
-              <button type="button" class="btn small ghost ico-btn" data-act="palette" title="Search everything (Ctrl+K)" aria-label="Search">${OB.icon('search')}<span class="kbd">Ctrl K</span></button>
-              <button type="button" class="btn small" data-act="newChar" title="New character">${OB.icon('plus')}<span>New</span></button>
-              <button type="button" class="btn small primary" data-act="exportOne" title="Download this character as a JSON file">${OB.icon('download')}<span>Export</span></button>
-              <button type="button" class="btn small" data-act="importFile" title="Load a character from a JSON file">${OB.icon('upload')}<span>Import</span></button>
-              <details class="menu" id="file-menu"><summary class="btn small ghost" aria-label="More">${OB.icon('more')}</summary>
-                <div class="menu-pop">
-                  <div class="menu-sec">Accent</div>
-                  <div class="swatches">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
-                  <button type="button" class="only-m" data-act="importFile">Import character (JSON)</button>
-                  <button type="button" data-act="exportAll">Export all characters</button>
-                  <button type="button" data-act="dupChar">Duplicate character</button>
-                  <button type="button" data-act="printSheet">Print sheet</button>
-                  <button type="button" class="danger" data-act="delChar">Delete character</button>
-                </div></details>
-              <span id="save-badge"></span>
-            </div>
-          </header>
-          <div id="hud" class="hud"></div>
-          <main id="view" class="view"></main>
-          <footer class="foot">Autosaves in this browser. <strong>Export</strong> a JSON file to keep a backup or to move to another device. · Based on <em>Oathbound</em> by Bruno Rocha Guimarães, which is based on <em>Ironsworn</em> by Shawn Tomkin · CC BY-NC-SA 4.0</footer>
+      <div class="app">
+        <header class="topbar">
+          <button type="button" class="ib" data-act="menu" aria-label="Campaigns and data" title="Campaigns and data">${OB.icon('menu')}</button>
+          <div class="ttl"><span class="brand">OATHBOUND</span><span class="bar" aria-hidden="true"></span><span class="sub">Waystone</span></div>
+          <div class="tr">
+            <button type="button" class="ib" data-act="search" title="Search (Ctrl+K)" aria-label="Search">${OB.icon('search')}</button>
+            <button type="button" class="ib" data-act="openDsec" data-s="dice" title="Dice" aria-label="Dice">${OB.icon('dice')}</button>
+            <button type="button" class="ib" data-act="openDsec" data-s="journal" title="Journal" aria-label="Journal">${OB.icon('listEdit')}</button>
+          </div>
+        </header>
+        <nav id="tabs" class="tabs" role="tablist" aria-label="Sections"></nav>
+        <div class="stage">
+          <main id="view" class="view" tabindex="-1"></main>
+          <aside id="drawer" class="drawer" aria-label="Dice, oracles, moves and journal">
+            <div class="drawer-top"><span>Tools</span><button type="button" class="ib" data-act="toggleDrawer" aria-label="Close tools">${OB.icon('close')}</button></div>
+            <div id="drawer-body" class="drawer-body"></div>
+          </aside>
         </div>
-        <aside id="dice" class="dice" aria-label="Dice and roll log"></aside>
+        <button type="button" id="drawer-fab" class="fab" data-act="toggleDrawer" aria-label="Show or hide tools"></button>
+        <div id="menu" class="menu" aria-hidden="false">
+          <div class="scrim" data-act="closeMenu"></div>
+          <aside id="menu-body" class="menu-panel" aria-label="Campaigns and data"></aside>
+        </div>
+        <footer class="foot">Autosaves in this browser. <strong>Export</strong> a JSON file to keep a backup or move to another device. · Based on <em>Oathbound</em> by Bruno Rocha Guimarães, which is based on <em>Ironsworn</em> by Shawn Tomkin · CC BY-NC-SA 4.0</footer>
       </div>
-      <button type="button" id="dice-fab" class="fab" data-act="toggleDice" aria-label="Open dice and roll log">${OB.icon('dice')}</button>
       <input type="file" id="file-in" accept=".json,application/json" hidden>
       <input type="file" id="portrait-in" accept="image/*" hidden>`;
+    OB.ui.drawer = WIDE();
     OB.refresh();
     window.addEventListener('beforeunload', OB.saveNow);
   };

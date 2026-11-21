@@ -117,7 +117,7 @@
     </details>`;
   }
 
-  OB.v.moves = function () {
+  OB.drawerMoves = function () {
     const c = OB.char();
     const q = OB.ui.moveFilter.toLowerCase().trim();
     const catSel = OB.ui.moveCat;
@@ -127,8 +127,7 @@
       if (!list.length) return '';
       return `<section class="move-cat"><h3 class="cat-title"><span>${cat.name} moves</span></h3>${list.map(m => card(m, c)).join('')}</section>`;
     }).join('');
-    return `${OB.banner('destination', 'Moves', 'When you do something within the scope of a move, make the move. Do not roll unless a move tells you to.')}
-      <div class="filters">
+    return `      <div class="filters">
         <input type="search" id="move-search" placeholder="Search moves…" value="${E(OB.ui.moveFilter)}" aria-label="Search moves">
         <div class="chips" role="group" aria-label="Move category">
           <button type="button" class="chip ${catSel === 'all' ? 'on' : ''}" data-act="moveCat" data-cat="all">All</button>
