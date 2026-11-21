@@ -1,0 +1,17 @@
+{
+  "name": "Oathbound Character Sheet",
+  "short_name": "Oathbound",
+  "description": "Oathbound character sheet with 3D dice, moves and oracles. Works offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1f2530",
+  "theme_color": "#1f2530",
+  "categories": ["games", "utilities"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

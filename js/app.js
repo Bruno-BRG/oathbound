@@ -6,7 +6,7 @@
   'use strict';
   const E = OB.esc;
   const $ = (s, r) => (r || document).querySelector(s);
-  const WIDE = () => window.matchMedia('(min-width: 1280px)').matches;
+  const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
@@ -59,6 +59,8 @@
       ${item('exportAll', 'download', 'Export All Campaigns')}
       ${item('exportJournal', 'download', 'Export Journal')}
       <hr>
+      ${OB.canInstall ? item('installApp', 'download', 'Install App') : ''}
+      ${item('diceStyle', 'dice', 'Dice Style (3D)')}
       ${item('dupChar', 'copy', 'Duplicate Campaign')}
       ${item('printSheet', 'print', 'Print Character')}
       <div class="swatches" aria-label="Accent colour">${OB.THEMES.map(t => `<button type="button" class="sw sw-${t[0]}" data-act="theme" data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]} accent"></button>`).join('')}</div>
@@ -231,6 +233,12 @@
     },
     toggleDrawer() { OB.ui.drawer = !OB.ui.drawer; OB.refresh(); },
     openDsec(el) { if (el.dataset.s === 'dice') return A.toggleDice(); OB.openDrawer(el.dataset.s); },
+    installApp() {
+      setMenu(false);
+      const ev = OB.installEvt; if (!ev) return;
+      ev.prompt(); ev.userChoice.finally(() => { OB.installEvt = null; OB.canInstall = false; });
+    },
+    diceStyle() { setMenu(false); OB.dice3d.openSettings(); },
     toggleDice() { OB.ui.dicePanel = !OB.ui.dicePanel; document.body.classList.toggle('dice-open', !!OB.ui.dicePanel); },
     copyOracle(el) { const e = OB.rollOracle(el.dataset.key); const t = e.parts.map(p => p.text).join(' '); if (navigator.clipboard) navigator.clipboard.writeText(t).catch(() => {}); OB.toast('Copied: ' + t); },
     menu() { setMenu(!OB.ui.menu); },
@@ -475,7 +483,7 @@
     OB.FOES.forEach(g => g.list.forEach(f => items.push({ k: 'Foe', n: f[0], h: f[1] + ' · add to Fights', run: () => OB.addFoe(f[0], f[1]) })));
     [['New vow', () => trackModal('oath')], ['New journey', () => trackModal('journey')], ['Add bond', () => bondModal()],
       ['Add asset', () => assetModal()], ['Roll d100', () => A.rollD100()], ['Export campaign JSON', () => OB.exportData(false)], ['Load campaign JSON', () => $('#file-in').click()],
-      ['New campaign', () => A.newChar()], ['Open journal', () => OB.openDrawer('journal')]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
+      ['New campaign', () => A.newChar()], ['Dice style (3D)', () => OB.dice3d.openSettings()], ['Open journal', () => OB.openDrawer('journal')]].forEach(x => items.push({ k: 'Action', n: x[0], run: x[1] }));
     let sel = 0, list = items;
     const close = () => { const m = document.getElementById('modal'); if (m) m.remove(); };
     const draw = m => {
@@ -660,5 +668,14 @@
     OB.refresh();
     window.addEventListener('beforeunload', OB.saveNow);
   };
+  /* ---------- PWA: install button + offline service worker ---------- */
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); OB.installEvt = e; OB.canInstall = true;
+    if (OB.ui && OB.ui.menu) OB.refresh();
+  });
+  window.addEventListener('appinstalled', () => { OB.installEvt = null; OB.canInstall = false; OB.toast && OB.toast('App installed.'); });
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
   document.addEventListener('DOMContentLoaded', OB.boot);
 })(window.OB);

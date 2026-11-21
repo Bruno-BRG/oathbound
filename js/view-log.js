@@ -139,10 +139,10 @@
         <div class="add-row">
           <select id="dp-track" aria-label="Progress track"><option value="">Progress roll…</option>${prog.map(t => `<option value="${t.id}">${E(t.name || '(unnamed)')} — ${t.kind}, ${OB.boxes(t)}/10</option>`).join('')}${c.bonds.length ? '<option value="bonds">Bonds</option>' : ''}</select>
           <button type="button" class="btn small" data-act="rollProgressPanel">Roll</button></div>
-        <div class="add-row"><span class="lbl">Oracle</span><button type="button" class="btn small" data-act="rollD100">d100</button><button type="button" class="btn small ghost" data-act="rollDie" data-n="6">d6</button><button type="button" class="btn small ghost" data-act="rollDie" data-n="10">d10</button><button type="button" class="btn small ghost" data-act="rollDie" data-n="20">d20</button></div>
+        <div class="add-row"><span class="lbl">Oracle</span><button type="button" class="btn small" data-act="rollD100">d100</button><button type="button" class="btn small ghost" data-act="rollDie" data-n="6">d6</button><button type="button" class="btn small ghost" data-act="rollDie" data-n="10">d10</button><button type="button" class="btn small ghost" data-act="rollDie" data-n="20">d20</button><button type="button" class="btn small ghost" data-act="diceStyle" title="3D dice style">Style</button></div>
       </div>
       <div class="log-head"><span class="lbl">Roll log</span><button type="button" class="btn small ghost" data-act="clearLog" ${c.log.length ? '' : 'disabled'}>Clear</button></div>
-      <div class="log" aria-live="polite">${c.log.map(e => entry(e, c)).join('') || '<p class="muted empty">Your rolls appear here.</p>'}</div>`;
+      <div class="log" aria-live="polite">${c.log.filter(e => !e.hold).map(e => entry(e, c)).join('') || '<p class="muted empty">Your rolls appear here.</p>'}</div>`;
   };
 
   OB.flashLog = function () {

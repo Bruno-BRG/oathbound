@@ -78,6 +78,7 @@
     out.deb = Object.assign({}, (c && c.deb) || {});
     ['extraPaths', 'bonds', 'tracks', 'assets', 'journal', 'log', 'factions'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
     if (!out.hexes || typeof out.hexes !== 'object') out.hexes = {};
+    out.log.forEach(e => { delete e.hold; });
     out.factions.forEach(f => { f.id = f.id || OB.uid('f'); });
     OB.STATS.forEach(s => { out.stats[s.key] = OB.clamp(parseInt(out.stats[s.key], 10) || 0, 0, 9); });
     ['health', 'spirit', 'supply'].forEach(k => { out[k] = OB.clamp(parseInt(out[k], 10) || 0, 0, 5); });

@@ -108,7 +108,7 @@ body.drawer-open .drawer { width: var(--drawer-w); }
 .fab:hover { transform: translateY(-2px); } .fab .ico { width: 22px; height: 22px; }
 .fab.pulse { animation: pulse .8s; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(var(--goldrgb), .9); } 100% { box-shadow: 0 0 0 24px rgba(var(--goldrgb), 0); } }
-@media (min-width: 1280px) { body.drawer-open .fab { right: calc(var(--drawer-w) + 14px); } }
+@media (min-width: 1024px) { body.drawer-open .fab { right: calc(var(--drawer-w) + 14px); } }
 
 /* drawer sections: big condensed headers, like Stargazer's ORACLES / MOVES / JOURNAL */
 .dsec { border-bottom: 1px solid var(--line); }
@@ -537,11 +537,11 @@ a.mvlink { color: var(--gold2); font-style: italic; text-decoration: none; borde
 .foot { padding: 20px; text-align: center; color: var(--dim); font-size: .82rem; border-top: 1px solid var(--line); margin-top: auto; }
 
 /* ---------- narrow screens: drawer becomes a sheet over the page ---------- */
-@media (max-width: 1279px) {
+@media (max-width: 1023px) {
   .drawer { position: fixed; top: 0; right: 0; bottom: 0; height: auto; width: min(var(--drawer-w), 94vw); z-index: 110; transform: translateX(104%); transition: transform .3s var(--ease), width 0s; box-shadow: -30px 0 60px -20px #000; }
   body.drawer-open .drawer { width: min(var(--drawer-w), 94vw); transform: none; }
   .drawer-top { display: flex; align-items: center; justify-content: space-between; height: var(--top-h); padding: 0 12px 0 16px; background: linear-gradient(180deg, var(--head1), var(--head2)); font-family: var(--head); font-weight: 700; font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
-  .drawer-body { width: 100%; height: calc(100vh - var(--top-h)); }
+  .drawer-body { width: 100%; height: calc(100vh - var(--top-h)); height: calc(100dvh - var(--top-h)); }
   body.drawer-open::after { content: ''; position: fixed; inset: 0; z-index: 105; background: rgba(4,6,10,.5); }
   .fab { right: 14px; bottom: 14px; }
   body.drawer-open .fab { display: none; }
@@ -747,3 +747,68 @@ body.dice-open .dicepanel { display: block; }
 .trk-actions .ib { width: auto; padding: 0 10px; font-size: .85rem; color: #c8d0de; }
 .hs .cells.strip { flex: 1 1 auto; } .hs .cell { flex: 0 1 36px; }
 .ident { justify-items: stretch; }
+
+/* 3D dice overlay + dice style panel */
+#dice3d { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 150; pointer-events: none; display: none; }
+.dsty-top { display: flex; gap: 18px; flex-wrap: wrap; align-items: end; margin-bottom: 8px; } .dsty-top .fl { min-width: 150px; }
+.dsty h4 { margin: 14px 0 8px; }
+.dsty-sw { display: flex; flex-wrap: wrap; gap: 8px; }
+.dsw { width: 40px; height: 40px; border-radius: 10px; background: var(--b); color: var(--i); border: 2px solid rgba(255,255,255,.18); font-family: var(--head); font-weight: 700; font-size: 1.15rem; padding: 0; transition: transform .15s; }
+.dsw i { font-style: normal; } .dsw:hover { transform: translateY(-2px); } .dsw.on { border-color: #fff; box-shadow: 0 0 0 2px var(--gold); }
+.dsty-c { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: .85rem; color: var(--muted); align-items: center; }
+.dsty-c label { display: flex; align-items: center; gap: 8px; } .dsty-c select { width: auto; padding: 5px 28px 5px 8px; }
+input[type=color] { width: 46px; height: 32px; padding: 0; border: 0; background: none; border-radius: 6px; cursor: pointer; }
+
+/* ==========================================================================
+   TABLET + TOUCH LAYER
+   ========================================================================== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { min-height: 100dvh; -webkit-tap-highlight-color: transparent; }
+.app { min-height: 100dvh; }
+button, .btn, .tab, .cell, .step, .chk, select, summary, [data-act] { touch-action: manipulation; }
+.drawer-body, .menu-panel, .dicepanel, .modal-box { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+/* safe areas: notch, home bar, rounded corners (installed app + landscape) */
+.topbar { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); height: calc(var(--top-h) + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); }
+.tabs { top: calc(var(--top-h) + env(safe-area-inset-top)); }
+.view { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+.fab { bottom: max(14px, env(safe-area-inset-bottom)); }
+.menu-panel { padding-left: env(safe-area-inset-left); padding-bottom: env(safe-area-inset-bottom); }
+.drawer-body { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+
+/* tablets in landscape and small laptops: slimmer drawer so the sheet keeps room */
+@media (min-width: 1024px) and (max-width: 1279px) { :root { --drawer-w: 360px; } }
+
+/* touch screens: big targets, no hover-only controls, no iOS zoom on focus */
+@media (pointer: coarse) {
+  .ib { min-width: 44px; min-height: 44px; }
+  .btn, .chip, .rk, .mbtn, .pal-item { min-height: 44px; }
+  .step { min-width: 40px; min-height: 40px; }
+  .cell { min-height: 40px; }
+  .tab { min-height: 44px; }
+  .chk .box { width: 26px; height: 26px; }
+  .sw { width: 34px; height: 34px; }
+  input, select, textarea { font-size: 16px; }
+  input, select { min-height: 44px; }
+  .sctl { opacity: 1; }
+  .sctl .step { min-width: 36px; min-height: 36px; }
+  button.pbox { min-width: 26px; min-height: 34px; }
+}
+@media (hover: none) {
+  .sctl { opacity: 1; }
+  .cell:hover:not(:disabled), .btn:hover:not(:disabled), .rollbtn:hover:not(:disabled), .odd:hover, .fab:hover, .hexbtn:hover { transform: none; }
+}
+
+/* tablet portrait: use the width, two columns where it helps */
+@media (min-width: 700px) and (max-width: 1023px) {
+  .view { max-width: 920px; margin-left: auto; margin-right: auto; padding-bottom: 120px; }
+  .dicepanel { max-width: 440px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+@media (min-width: 1024px) and (max-width: 1279px) {
+  body.drawer-open .hsrow { grid-template-columns: 1fr; }
+  body.drawer-open .hs { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,.1); }
+  body.drawer-open .hs:first-child { border-top: 0; }
+}
+.vrow { flex-wrap: wrap; }
+.band-btn { min-width: 34px; min-height: 34px; }
