@@ -16,5 +16,5 @@ RUN V="$(echo "${SOURCE_COMMIT:-dev}" | cut -c1-12)" \
  && sed -i "s/const VERSION = '[^']*'/const VERSION = 'ob-${V}'/" /usr/share/nginx/html/sw.js \
  && grep -n "const VERSION" /usr/share/nginx/html/sw.js
 
-EXPOSE 80
+EXPOSE 80 3000
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://127.0.0.1/healthz >/dev/null || exit 1

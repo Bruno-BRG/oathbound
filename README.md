@@ -96,3 +96,11 @@ O repositório tem `Dockerfile` (nginx) e `nginx.conf`.
 6. Saúde: `GET /healthz` responde `ok`.
 
 Se a tela antiga continuar depois do deploy, use **Redeploy com "Force rebuild"** e limpe os dados do site no navegador uma vez.
+
+### Se o site não abrir no Coolify
+
+- **Porta:** o nginx escuta em `80` e em `3000`. Em Configurações → Network → *Ports Exposes*, use `80` (ou `3000`). Valor diferente dá "no available server".
+- **Build Pack** tem que ser **Dockerfile**, *Base Directory* `/`, *Dockerfile Location* `/Dockerfile`.
+- **Logs:** Deployments → último deploy (erro de build) e Logs do container (erro do nginx).
+- **Healthcheck:** o container responde `ok` em `/healthz`. Se o deploy fica "unhealthy", desligue o healthcheck do Coolify e veja o log.
+- **Domínio:** em *Domains* use `https://oathbound.brunorocha.dev.br` e confira o DNS (registro A para o IP do VPS).
