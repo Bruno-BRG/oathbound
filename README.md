@@ -82,4 +82,4 @@ Texto e arte do livro: CC BY-NC-SA 4.0. Uso não comercial, com crédito, e comp
 
 - three.js (MIT) em `assets/vendor/three-dice.js`; carrega só quando precisa. Sem WebGL, o app usa o rolo 2D.
 - O jogo sorteia o resultado antes; a animação só mostra o resultado.
-- Menu ≡ → **Dice Style (3D)**: cor do corpo e dos números, acabamento (brilhante, fosco, metal), qualidade (low/medium/high), pontos no d6, 10 temas prontos.
+- Menu ≡ → **Dice Style (3D)**: cor do corpo e dos números, acabamento (brilhante, fosco, metal), qualidade (low/medium/high), 10 temas prontos.

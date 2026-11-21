@@ -812,3 +812,32 @@ button, .btn, .tab, .cell, .step, .chk, select, summary, [data-act] { touch-acti
 }
 .vrow { flex-wrap: wrap; }
 .band-btn { min-width: 34px; min-height: 34px; }
+
+/* ==========================================================================
+   ROLL PANEL: same flat slate look as the sheet and the drawer
+   ========================================================================== */
+.dicepanel { background: #2d3340; border-radius: 4px; }
+.dice-controls { background: transparent; border-bottom: 1px solid var(--line2); }
+.statbtn { background: var(--input); border: 0; border-radius: 4px; box-shadow: none; padding: 8px 2px; }
+.statbtn:hover:not(:disabled) { background: #454d60; border: 0; box-shadow: none; transform: none; } .statbtn:hover b { color: #fff; }
+.statbtn span { color: #c0c8d6; } .statbtn b { font-family: var(--ui); font-weight: 400; font-size: 1.35rem; }
+.add-val { color: #fff; font-family: var(--ui); font-weight: 400; }
+.dicepanel .btn, .dicepanel .chip { border-radius: 4px; background: var(--input); border: 0; box-shadow: none; transform: none; }
+.dicepanel .btn:hover:not(:disabled), .dicepanel .chip:hover { background: #454d60; box-shadow: none; transform: none; }
+.dicepanel .chip.on { background: #8fb2d6; color: #101820; }
+.roll { background: #363d4d; border: 0; border-left: 4px solid #5b6781; border-radius: 4px; box-shadow: none; }
+.roll.fresh.hit-strong, .roll.fresh.hit-miss { animation: rise .35s var(--ease) both; }
+.term.score b { color: #fff; text-shadow: none; }
+.die { border-radius: 4px; box-shadow: none !important; font-family: var(--ui); font-weight: 700; }
+.die.d6 { background: #eef1f6; color: #1c212b; }
+.die.d10 { clip-path: none; padding: 0; width: 42px; height: 42px; background: var(--input); border: 2px solid var(--ring); color: #fff; }
+.die.d10::before { display: none; }
+.die.d10.beat { background: rgba(159,208,140,.14); color: var(--strong); }
+.die.d10.lose { background: rgba(234,115,96,.14); color: #f3aca0; }
+.die.d10.burn { background: rgba(255,178,90,.14); color: #ffc684; }
+.die.d100 { background: var(--input); border: 0; color: #fff; box-shadow: none; }
+.res { border-radius: 4px; font-family: var(--ui); font-weight: 700; box-shadow: none !important; }
+.res.strong { background: var(--strong); } .res.weak { background: var(--weak); } .res.miss { background: var(--miss); }
+.burn-btn { background: rgba(255,178,90,.12); box-shadow: none; border-radius: 4px; }
+.fx { border-radius: 4px; }
+.tag { border-radius: 4px; }

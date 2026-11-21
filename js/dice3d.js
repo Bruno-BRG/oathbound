@@ -33,7 +33,7 @@
   };
 
   const defaults = () => ({
-    on: true, quality: 'high', pips: true,
+    on: true, quality: 'high', pips: false,
     action:    { body: '#f2eee3', ink: '#15130e', finish: 'glossy' },
     challenge: { body: '#1b1f27', ink: '#e9d7a0', finish: 'glossy' }
   });
@@ -184,7 +184,7 @@
       const mats = vals.map(v => {
         const cv = document.createElement('canvas'); cv.width = cv.height = q.cell;
         const ctx = cv.getContext('2d'); paintBody(ctx, 0, 0, q.cell, look.body);
-        if (S.pips) paintPips(ctx, 0, 0, q.cell, v, look.ink); else paintLabel(ctx, 0, 0, q.cell, String(v), look.ink, false);
+        paintLabel(ctx, 0, 0, q.cell, String(v), look.ink, false);
         return material(T, texture(cv), look);
       });
       const nrm = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(a => new T.Vector3(a[0], a[1], a[2]));
@@ -346,8 +346,7 @@
         title: 'Dice style', ok: 'Test roll', cancel: 'Close',
         html: `<div class="dsty-top">
             <label class="chk"><input type="checkbox" data-d3="on" ${S.on ? 'checked' : ''}><span class="box"></span><span>3D dice</span></label>
-            <label class="fl">Quality<select data-d3="quality"><option value="low" ${S.quality === 'low' ? 'selected' : ''}>Low (fast)</option><option value="medium" ${S.quality === 'medium' ? 'selected' : ''}>Medium</option><option value="high" ${S.quality === 'high' ? 'selected' : ''}>High (sharp)</option></select></label>
-            <label class="chk"><input type="checkbox" data-d3="pips" ${S.pips ? 'checked' : ''}><span class="box"></span><span>Pips on the d6</span></label></div>
+            <label class="fl">Quality<select data-d3="quality"><option value="low" ${S.quality === 'low' ? 'selected' : ''}>Low (fast)</option><option value="medium" ${S.quality === 'medium' ? 'selected' : ''}>Medium</option><option value="high" ${S.quality === 'high' ? 'selected' : ''}>High (sharp)</option></select></label></div>
           ${row('action', 'Action die (d6)')}${row('challenge', 'Challenge dice (d10)')}
           <p class="muted small">${OB.dice3d.supported() ? 'Dice are rolled by the game first. The 3D throw only shows the result. Settings save on this device.' : 'This browser cannot show 3D dice here. WebGL is off, or the page is opened from a file. The roll log still works.'}</p>`,
         onOpen: m => {
