@@ -91,7 +91,7 @@ O repositório tem `Dockerfile` (nginx) e `nginx.conf`.
 1. Coolify → New Resource → o repositório → **Build Pack: Dockerfile**, branch `main`, porta **80**.
 2. Ative **Auto Deploy** (webhook do GitHub) para cada push na `main` publicar sozinho.
 3. Domínio e HTTPS: configure no próprio Coolify. O PWA e o service worker precisam de HTTPS.
-4. Atualização: o Coolify passa `SOURCE_COMMIT` ao build. O Dockerfile grava esse commit em `sw.js` (`VERSION`), então todo deploy gera uma versão nova. O app instalado baixa os arquivos novos e recarrega uma vez.
+4. Atualização: a cada versão nova, mude `VERSION` em `sw.js` e `OB.BUILD` em `js/app.js` (mesmo valor). O app instalado baixa os arquivos novos e recarrega uma vez. HTML, JS e CSS sempre vêm da rede primeiro.
 5. Cache: HTML, JS, CSS e `sw.js` sempre revalidam (nginx `no-cache`). Imagens ficam 7 dias, fontes 1 ano.
 6. Saúde: `GET /healthz` responde `ok`.
 
