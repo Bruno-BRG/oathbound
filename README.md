@@ -83,3 +83,16 @@ Texto e arte do livro: CC BY-NC-SA 4.0. Uso não comercial, com crédito, e comp
 - three.js (MIT) em `assets/vendor/three-dice.js`; carrega só quando precisa. Sem WebGL, o app usa o rolo 2D.
 - O jogo sorteia o resultado antes; a animação só mostra o resultado.
 - Menu ≡ → **Dice Style (3D)**: cor do corpo e dos números, acabamento (brilhante, fosco, metal), qualidade (low/medium/high), 10 temas prontos.
+
+## Deploy no Coolify (Docker)
+
+O repositório tem `Dockerfile` (nginx) e `nginx.conf`.
+
+1. Coolify → New Resource → o repositório → **Build Pack: Dockerfile**, branch `main`, porta **80**.
+2. Ative **Auto Deploy** (webhook do GitHub) para cada push na `main` publicar sozinho.
+3. Domínio e HTTPS: configure no próprio Coolify. O PWA e o service worker precisam de HTTPS.
+4. Atualização: o Coolify passa `SOURCE_COMMIT` ao build. O Dockerfile grava esse commit em `sw.js` (`VERSION`), então todo deploy gera uma versão nova. O app instalado baixa os arquivos novos e recarrega uma vez.
+5. Cache: HTML, JS, CSS e `sw.js` sempre revalidam (nginx `no-cache`). Imagens ficam 7 dias, fontes 1 ano.
+6. Saúde: `GET /healthz` responde `ok`.
+
+Se a tela antiga continuar depois do deploy, use **Redeploy com "Force rebuild"** e limpe os dados do site no navegador uma vez.
