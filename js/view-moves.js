@@ -46,7 +46,7 @@
         break;
       }
       case 'companion': {
-        const comps = c.assets.filter(a => a.type === 'companion');
+        const comps = c.assets.filter(a => a.type === 'companion' || a.companion);
         out.push(comps.length ? `<div class="rollrow"><select id="ce-sel" aria-label="Companion">${comps.map(a => `<option value="${a.id}">${E(a.name || 'Companion')} (health ${a.health})</option>`).join('')}</select>
           <input type="number" min="0" max="9" value="1" id="ce-amt" class="mini" aria-label="Harm"><button type="button" class="rollbtn" data-act="compEndureSel"><span>Roll</span></button></div>` : '<p class="muted small">Add a companion in Assets first.</p>');
         break;

@@ -576,7 +576,7 @@ window.OB = window.OB || {};
   /* ---------- Guide content ---------- */
   OB.CREATION_STEPS = [
     ['Envision your character.', 'Think about their history, their hopes, and their flaws.'],
-    ['Choose a heritage and an upbringing.', 'Note the ability each one gives you.'],
+    ['Choose one heritage and an upbringing.', 'Record the starting and legacy abilities under your heritage.'],
     ['Choose a class and one of its two paths.', 'Take the class card and the Foundation card of the path. Note your max focus.'],
     ['Choose a name.', ''],
     ['Set your stats.', 'Arrange +3, +2, +2, +1, +1 across agility, strength, finesse, presence, and insight, in any order.'],

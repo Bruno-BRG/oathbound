@@ -92,6 +92,13 @@
       <div class="row gap wrap"><button class="btn small" data-act="rollOracle" data-key="treasure">Roll Treasure</button><button class="btn small" data-act="rollOracle" data-key="magicitem">Roll Magic Item</button>${OB.ARTIFACTS.map((a, i) => `<button class="btn small ghost" data-act="addArtifact" data-i="${i}">Add artifact: ${E(a.name)}</button>`).join('')}</div>`;
   }
 
+  function equipment() {
+    return `<dl class="gear-rules">${OB.GEAR_RULES.map(([heading, rule]) => `<dt>${E(heading)}</dt><dd>${E(rule)}</dd>`).join('')}</dl>
+      <h4>Example equipment</h4>
+      <div class="gear-items">${OB.EQUIPMENT.map(item => `<article class="gear-item"><div><h4>${E(item.name)}</h4>
+        <span class="muted small">${E(OB.gearMeta(item))}</span></div><p>${E(item.text)}</p></article>`).join('')}</div>`;
+  }
+
   function amarin() {
     return `
       <p>The Amarin is a wide land between two seas. Three hundred years ago it was the heart of the Dawn Empire, ruled by mage-kings who built roads of white stone, towers that touched the clouds, and vaults that still hold their secrets. Then, in a single night, the Empire fell. Its capital was torn apart by a storm of wild magic. Its armies turned on each other. Its gods went silent for a generation.</p>
@@ -110,7 +117,7 @@
   function lineage() {
     return `
       <h4>Heritages</h4>
-      <p>Your heritage gives one ability now and a <strong>legacy</strong> ability. Gain the legacy when you Ascend and choose “Awaken your blood”. If your parents come from two peoples, take the ability from one and the legacy from the other.</p>
+      <p>Your heritage is your character’s people or race. It gives one starting ability now and a <strong>legacy</strong> ability that awakens when you Ascend and choose “Awaken your blood”.</p>
       ${table(['Heritage', 'Ability', 'Legacy'], OB.HERITAGES.map(h => [`${h.key}<br><small class="muted"><em>${E(h.tags)}</em></small>`, `<strong>${E(h.ability[0])}.</strong> ${E(h.ability[1])}`, `<strong>${E(h.legacy[0])}.</strong> ${E(h.legacy[1])}`]))}
       <h4>Upbringings</h4>
       ${table(['Upbringing', 'Ability'], OB.UPBRINGINGS.map(u => [`${u.key}<br><small class="muted"><em>${E(u.tags)}</em></small>`, `<strong>${E(u.ability[0])}.</strong> ${E(u.ability[1])}`]))}
@@ -162,6 +169,7 @@
     ['mech', 'Core rules', 'adventure', 'Rolls, momentum, tracks, harm'],
     ['start', 'Getting started', 'quest', 'Create a character and a campaign'],
     ['magic', 'Magic', 'magic', 'Spells, rituals, gods, items'],
+    ['equipment', 'Equipment', 'adventure', 'Loadout, attunement, and item effects'],
     ['amarin', 'The Amarin', 'relationship', 'Regions and travel'],
     ['lineage', 'Lineage and class', 'suffer', 'Heritage, upbringing, class, tiers'],
     ['credits', 'Credits', 'fate', 'License']
@@ -170,7 +178,7 @@
   OB.v.guide = function () {
     const c = OB.char();
     const body = {
-      combat: combat(), mech: mechanics(), start: gettingStarted(c), magic: magic(), amarin: amarin(), lineage: lineage(),
+      combat: combat(), mech: mechanics(), start: gettingStarted(c), magic: magic(), equipment: equipment(), amarin: amarin(), lineage: lineage(),
       credits: `<p><strong>Design and writing:</strong> Bruno Rocha Guimarães. <strong>Based on:</strong> Ironsworn by Shawn Tomkin (ironswornrpg.com).</p>
           <p>The text of Oathbound is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license (CC BY-NC-SA 4.0). You may share and adapt it for non-commercial use if you give credit and share alike.</p>
           <p>Some ideas for classes, heritages, upbringings, and paths draw inspiration from Daggerheart by Darrington Press. This sheet is not affiliated with or endorsed by Darrington Press, Critical Role, or Shawn Tomkin.</p>`

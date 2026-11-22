@@ -59,6 +59,7 @@
       kind: 'action', label: o.label, move: o.move || null,
       statName: o.statName || (o.statKey ? OB.statLabel(c, o.statKey) : ''),
       statVal, add, d6, c1, c2, mom, cancelled, score, match: c1 === c2,
+      weaponHarm: c.equipment.some(item => item.slot === 'weapon' && item.equipped) ? OB.baseHarm(c) : undefined,
       extras: o.extras || [], note: o.note || null, harm: o.harm || null, trackId: o.trackId || null
     };
     e.hit = level(score, c1, c2, null);
@@ -352,7 +353,9 @@
     if (opts.picks.includes('blood')) c.legacyAwakened = true;
     if (opts.picks.includes('path') && opts.pathCls && opts.path) {
       c.extraPaths.push({ cls: opts.pathCls, path: opts.path });
-      OB.addPathCard(opts.pathCls, opts.path, 0, true);
+      if (!c.assets.some(a => a.type === 'path' && a.path === opts.path && a.pathIdx === 0)) {
+        OB.addPathCard(opts.pathCls, opts.path, 0);
+      }
     }
     c.tier = next;
     c.ascended = (c.ascended || []).concat([{ tier: next, picks: opts.picks, at: Date.now() }]);
@@ -370,7 +373,19 @@
     return asset;
   };
 
-  OB.addPathCard = function (cls, path, idx, free) {
+  OB.pathCardBlock = function (c, cls, path, idx) {
+    const has = i => c.assets.some(a =>
+      (a.type === 'path' && a.path === path && a.pathIdx === i) ||
+      (a.type === 'spell' && a.path === path && a.tier === i + 1) ||
+      (a.type === 'spell' && a.name === OB.PATH_CARDS[path]?.[i]?.name));
+    if (has(idx)) return 'Already on your sheet';
+    if (cls !== c.cls && !c.extraPaths.some(p => p.cls === cls && p.path === path)) return 'Unlock this path with Ascend';
+    if (c.tier < idx + 1) return 'Requires tier ' + (idx + 1);
+    if (idx > 0 && !has(idx - 1)) return 'Requires ' + OB.PATH_TIERS[idx - 1];
+    return '';
+  };
+
+  OB.addPathCard = function (cls, path, idx) {
     const info = OB.CLASS_INFO[cls];
     if (!info) return null;
     const cards = OB.PATH_CARDS[path];
@@ -378,7 +393,17 @@
     let proto;
     if (cards && cards[idx] && cards[idx].name) {
       const k = cards[idx];
-      proto = { type: 'path', name: k.name, sub: `${path} · ${tierName}${k.spell ? ' · Spell' : ''}`, tier: idx + 1, abilities: k.abilities.map((t, i) => ({ text: t, on: i === 0 })) };
+      proto = {
+        type: 'path',
+        name: k.name,
+        sub: `${path} · ${tierName}${k.spell ? ' · Spell' : ''}${k.source ? ' · ' + k.source : ''}`,
+        tier: idx + 1,
+        text: k.text || '',
+        companion: !!k.companion,
+        maxHealth: k.maxHealth || 4,
+        health: k.maxHealth || 4,
+        abilities: k.abilities.map((t, i) => ({ text: t, on: i === 0 }))
+      };
     } else {
       const nm = idx === 0 ? (info.foundations[path] || tierName) : '';
       proto = { type: 'path', name: nm, sub: `${path} · ${tierName}`, tier: idx + 1, text: info.paths[path] && idx === 0 ? info.paths[path] : '', abilities: [{ text: '', on: true }, { text: '', on: false }, { text: '', on: false }] };
@@ -402,7 +427,10 @@
         abilities: info.abilities.map((a, i) => ({ name: a[0], text: a[1], on: i === 0 }))
       });
       c.assets.unshift(c.assets.pop());   // class card first
-      if (path) { const pa = OB.addPathCard(cls, path, 0); if (pa) pa.auto = true; }
+      if (path && OB.pathCardBlock(c, cls, path, 0) !== 'Already on your sheet') {
+        const foundation = OB.addPathCard(cls, path, 0);
+        if (foundation) foundation.auto = true;
+      }
     }
     c.focus = hadFull ? OB.maxFocus(c) : Math.min(c.focus, OB.maxFocus(c));
     OB.save();
@@ -428,7 +456,7 @@
     c.stats[best] = 3;
     order.forEach((k, i) => { c.stats[k] = vals[i]; });
     c.ascStats = 0;
-    c.heritage = heritage; c.legacyFrom = heritage; c.upbringing = upbringing;
+    c.heritage = heritage; c.upbringing = upbringing;
     OB.applyClass(cls, path);
     if (!c.name) {
       const nt = OB.ORACLES[OB.nameKey(heritage)];

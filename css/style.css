@@ -940,4 +940,128 @@ details.move .pill { background: var(--mc); color: #11161e; border: 0; }
 .acc.gsec > summary::after { content: ''; width: 9px; height: 9px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(45deg); transition: transform .12s; margin-right: 4px; }
 .acc.gsec[open] > summary::after { transform: rotate(-135deg); }
 details.move, details.move:nth-of-type(n+2) { background: color-mix(in srgb, var(--mc, #4a5368) 30%, var(--slab)); }
-.am-prev { margin: 4px 0 10px; padding: 8px 12px; background: var(--field); border-radius: 4px; font-size: .92rem; max-height: 220px; overflow-y: auto; } .am-prev p { margin: 0 0 6px; } .am-prev ol { margin: 0; padding-left: 1.2em; } .am-prev li { margin-bottom: 4px; }
+.am-prev { margin: 4px 0 10px; padding: 8px 12px; background: var(--field); border-radius: 4px; font-size: .92rem; } .am-prev p { margin: 0 0 6px; } .am-prev ol { margin: 0; padding-left: 1.2em; } .am-prev li { margin-bottom: 4px; }
+
+/* ==========================================================================
+   FLAT UI PARITY: grounded buttons, selectors, modals, and lineage card
+   ========================================================================== */
+/* solid opaque modals, zero gradient or fade delay */
+.modal { background: var(--page); border: 1px solid rgba(255,255,255,.16); border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,.65); animation: none; }
+.modal header, .modal footer { border-color: rgba(255,255,255,.12); }
+.modal label.lbl { display: grid; gap: 6px; margin-bottom: 10px; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.modal label.lbl select, .modal label.lbl input { font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--text); }
+
+/* keep crisp chevron on every <select> without wiping background-image */
+select {
+  background-color: var(--field);
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 52%, calc(100% - 12px) 52%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+select:hover, select:focus { background-color: var(--field-hi); }
+.fl > select { background: transparent !important; appearance: auto; padding-right: 8px; }
+select option, select optgroup { background-color: var(--page); color: var(--text); }
+
+/* grounded flat buttons everywhere (matches roll panel & Stargazer controls) */
+.btn, .rollbtn {
+  background: var(--field);
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--text);
+  border-radius: 4px;
+  box-shadow: none;
+  transform: none;
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: .86rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.btn.sm, .btn.small { padding: 6px 10px; font-size: .8rem; }
+.btn:hover:not(:disabled), .rollbtn:hover:not(:disabled) {
+  background: var(--field-hi);
+  border-color: rgba(255,255,255,.28);
+  color: #fff;
+  box-shadow: none;
+  transform: none;
+}
+.rollbtn::before { display: none; }
+.rollbtn b { font-family: var(--ui); font-size: .92rem; color: var(--accent); }
+.btn.primary {
+  background: var(--accent);
+  color: #10161f;
+  border-color: transparent;
+  box-shadow: none;
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+  border-color: transparent;
+  color: #10161f;
+  box-shadow: none;
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.16);
+  color: var(--muted);
+}
+.btn.ghost:hover:not(:disabled) {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.28);
+  color: var(--text);
+}
+.btn.owned {
+  background: rgba(var(--goldrgb), .14);
+  border: 1px solid rgba(var(--goldrgb), .32);
+  color: var(--accent);
+  opacity: .92;
+}
+
+/* flat checkboxes, chips, steppers, progress bars, and asset ability toggles */
+.step, .odd { background: var(--field); border: 1px solid rgba(255,255,255,.12); box-shadow: none; }
+.step:hover:not(:disabled), .odd:hover { background: var(--field-hi); border-color: rgba(255,255,255,.26); color: #fff; box-shadow: none; transform: none; }
+.chip { border-radius: 4px; border: 1px solid rgba(255,255,255,.16); background: transparent; }
+.chip.on { background: var(--accent); border-color: transparent; color: #10161f; }
+.chk input:checked + .box { background: var(--accent); border-color: var(--accent); box-shadow: none; }
+.bar { background: var(--field); border: 0; }
+.bar i { background: var(--accent); box-shadow: none; }
+.band-btn { background: var(--field); color: var(--text); border: 1px solid rgba(255,255,255,.16); }
+.band-btn:hover { background: var(--field-hi); border-color: rgba(255,255,255,.3); color: #fff; transform: none; }
+
+/* asset card selectors: flat, zero neon glow or gradients */
+.hexbtn { background: rgba(255,255,255,.2); transform: none; }
+.hexbtn:hover { background: rgba(255,255,255,.35); transform: none; }
+.hexbtn.on { background: var(--accent); box-shadow: none; }
+.dot { border: 2px solid rgba(255,255,255,.35); background: transparent; }
+.dot:hover { border-color: var(--accent); background: rgba(var(--goldrgb), .18); }
+.dot.on { border-color: var(--accent); background: var(--accent); box-shadow: none; }
+.ab-name { font-family: var(--ui); font-weight: 700; font-size: .88rem; color: var(--accent); margin-bottom: 3px; }
+.ab-body { display: grid; }
+.asset-f .btn { margin-top: 2px; }
+
+/* lineage (Heritage + Upbringing abilities) block */
+.lineage-empty { margin: 10px 0 0; }
+.lineage-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 10px; margin-top: 12px; }
+.lin-group { background: var(--slab); border: 1px solid rgba(255,255,255,.08); border-left: 3px solid var(--accent); border-radius: 4px; padding: 10px 12px; display: grid; gap: 8px; align-content: start; }
+.lin-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; font-family: var(--head); font-weight: 700; font-size: 1.15rem; color: #fff; text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 5px; }
+.lin-item { display: grid; gap: 2px; font-size: .92rem; color: var(--text); line-height: 1.4; }
+.lin-k { font-family: var(--ui); font-weight: 700; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.lin-tag { font-size: .68rem; padding: 1px 6px; border-radius: 4px; background: var(--field); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
+.lin-tag.on { background: rgba(var(--goldrgb), .18); border-color: rgba(var(--goldrgb), .4); color: var(--accent); }
+
+.gear-toolbar { display: grid; gap: 8px; margin-bottom: 8px; }
+.gear-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 10px; margin-bottom: 14px; }
+.gear-item { display: grid; align-content: start; gap: 6px; padding: 12px; border-radius: 4px; background: var(--slab); border: 1px solid var(--line2); }
+.gear-item h4, .acc.gsec .gear-item h4 { margin: 0; }
+.gear-item p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.gear-rules dt { font-weight: 700; margin-bottom: 2px; }
+.gear-rules dd { margin: 0 0 12px; }
+.modal #ge-custom [hidden] { display: none; }
+
+@media (max-width: 600px) {
+  .vitals { grid-template-columns: minmax(0, 1fr); }
+  .vrow .cells.strip { min-width: 0; }
+  .asset-h { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .asset-k { grid-column: 2 / -1; font-size: 1rem; }
+}

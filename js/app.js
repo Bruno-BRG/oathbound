@@ -8,7 +8,7 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
-  OB.BUILD = '2026-11-21.b';
+  OB.BUILD = '2026-11-22.b';
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
   ];
@@ -178,62 +178,153 @@
   }
 
   /* ---------- Add asset: browse the whole catalog, or make a custom one ---------- */
-  function catalogItems(kind) {
+  function catalogItems(kind, c) {
     const out = [];
-    if (kind === 'class') OB.CLASSES.forEach(x => out.push({ v: 'class|' + x.key, label: x.key, ab: (OB.CLASS_INFO[x.key] || {}).abilities || [], text: (OB.CLASS_INFO[x.key] || {}).blurb, full: true }));
+    const cls = c && c.cls;
+    const traditions = cls ? (OB.CLASS_TRADITIONS[cls] || []) : [];
+    const extraPathSet = new Set((c && c.extraPaths || []).map(p => p.path));
+    if (kind === 'class') OB.CLASSES.forEach(x => out.push({ v: 'class|' + x.key, label: x.key, ab: OB.CLASS_INFO[x.key].abilities, text: OB.CLASS_INFO[x.key].blurb, block: c.assets.some(a => a.type === 'class' && a.cls === x.key) ? 'Already on your sheet' : '' }));
     else if (kind === 'path') OB.CLASSES.forEach(x => x.paths.forEach(p => OB.PATH_TIERS.forEach((t, i) => {
       const k = (OB.PATH_CARDS[p] || [])[i];
       const nm = k && k.name ? k.name : (i === 0 ? (OB.CLASS_INFO[x.key].foundations || {})[p] : '');
-      out.push({ v: `path|${x.key}|${p}|${i}`, label: `${x.key} · ${p} · ${t}${nm ? ' — ' + nm : ''}`, ab: k && k.abilities || [], text: i === 0 ? (OB.CLASS_INFO[x.key].paths || {})[p] : '', full: !!(k && k.abilities) });
+      const fits = !!cls && (x.key === cls || extraPathSet.has(p));
+      out.push({
+        v: `path|${x.key}|${p}|${i}`,
+        label: `${nm ? nm + ' — ' : ''}${x.key} · ${p} · ${t}`,
+        ab: k && k.abilities || [],
+        text: (k && k.text) || (i === 0 ? (OB.CLASS_INFO[x.key].paths || {})[p] : ''),
+        cls: x.key,
+        path: p,
+        fits,
+        block: OB.pathCardBlock(c, x.key, p, i)
+      });
     })));
-    else if (kind === 'artifact') OB.ARTIFACTS.forEach((a, i) => out.push({ v: 'artifact|' + i, label: a.name, ab: a.abilities, text: a.text, full: true }));
-    else (OB.CATALOG[kind] || []).forEach((a, i) => out.push({ v: kind + '|' + i, label: a.name, ab: a.abilities || [], text: a.text, full: !a.todo }));
+    else if (kind === 'artifact') OB.ARTIFACTS.forEach((a, i) => out.push({ v: 'artifact|' + i, label: a.name, ab: a.abilities, text: a.text }));
+    else (OB.CATALOG[kind] || []).forEach((a, i) => {
+      const fits = kind === 'spell' && !!cls && (a.cls === cls || extraPathSet.has(a.path) || traditions.includes(a.source));
+      const label = kind === 'spell' ? `${a.name} — ${a.source || a.cls} (${a.path} · ${a.tierName})` : a.name;
+      out.push({
+        v: kind + '|' + i,
+        label,
+        ab: a.abilities || [],
+        text: a.text,
+        cls: a.cls || '',
+        source: a.source || '',
+        fits,
+        block: kind === 'spell' ? OB.pathCardBlock(c, a.cls, a.path, a.pathIdx) :
+          kind === 'talent' && a.name === 'Battle-Scarred' && !c.deb.maimed ? 'Requires the Maimed bane' : ''
+      });
+    });
     return out;
   }
 
   function assetModal() {
     const c = OB.char();
     const KINDS = [['class', 'Class card'], ['path', 'Path card'], ['talent', 'Talent'], ['companion', 'Companion'], ['spell', 'Spell'], ['artifact', 'Artifact'], ['custom', 'Custom asset']];
+    const clsLabel = c.cls || '';
     OB.modal({
       title: 'Add asset',
       ok: 'Add',
-      html: `<label class="lbl">Type<select id="am-type">${KINDS.map(k => `<option value="${k[0]}">${k[1]}</option>`).join('')}</select></label>
+      html: `<label class="lbl">Category<select id="am-type">${KINDS.map(k => `<option value="${k[0]}" ${k[0] === 'talent' ? 'selected' : ''}>${k[1]}</option>`).join('')}</select></label>
+        <div data-for="filter" hidden><label class="lbl">Filter by class / tradition<select id="am-filter"></select></label></div>
         <div data-for="list"><label class="lbl">Card<select id="am-item"></select></label>
           <div id="am-prev" class="am-prev"></div></div>
-        <div data-for="name"><label class="lbl">Name<input type="text" id="am-name" autocomplete="off" placeholder="Name of your own asset"></label></div>
+        <div data-for="name" hidden><label class="lbl">Name<input type="text" id="am-name" autocomplete="off" placeholder="Name of your own asset"></label></div>
+        <p id="am-status" class="muted small" role="status"></p>
         <label class="chk"><input type="checkbox" id="am-xp" checked><span class="box"></span><span id="am-xp-l"></span></label>
-        <p class="muted small">At creation, your class card, one Foundation, and one talent or companion are free. Untick the box for those. Cards marked “name only” are printed in the book’s Appendix A: the sheet adds the card with its name, and you type the abilities.</p>`,
+        <p class="muted small">At creation, your class card, one Foundation, and one talent or companion are free. Untick the box for those.</p>`,
       onOpen: m => {
+        const renderFilter = t => {
+          const fWrap = m.querySelector('[data-for="filter"]');
+          const fSel = $m('#am-filter', m);
+          if (t !== 'spell' && t !== 'path') { fWrap.hidden = true; return; }
+          fWrap.hidden = false;
+          const items = catalogItems(t, c);
+          const hasFit = items.some(x => x.fits);
+          const opts = [];
+          if (hasFit) opts.push(['fits', t === 'spell' ? `${clsLabel} and related magic` : `Paths for ${clsLabel}`]);
+          opts.push(['all', `All (${items.length})`]);
+          if (t === 'spell') {
+            const sources = [...new Set(items.map(x => x.source).filter(Boolean))];
+            sources.forEach(s => opts.push(['src:' + s, s]));
+          } else {
+            OB.CLASSES.forEach(x => opts.push(['cls:' + x.key, x.key]));
+          }
+          fSel.innerHTML = opts.map(o => `<option value="${E(o[0])}">${E(o[1])}</option>`).join('');
+          if (hasFit) fSel.value = 'fits';
+        };
+        const fillList = () => {
+          const t = $m('#am-type', m).value;
+          const custom = t === 'custom';
+          if (custom) return;
+          let items = catalogItems(t, c);
+          const fVal = m.querySelector('[data-for="filter"]').hidden ? 'all' : $m('#am-filter', m).value;
+          if (fVal === 'fits') items = items.filter(x => x.fits);
+          else if (fVal.startsWith('src:')) items = items.filter(x => x.source === fVal.slice(4));
+          else if (fVal.startsWith('cls:')) items = items.filter(x => x.cls === fVal.slice(4));
+          const label = t === 'spell' ? `${clsLabel} and related magic` : `Paths for ${clsLabel}`;
+          let html = '';
+          if (fVal === 'all' && (t === 'spell' || t === 'path') && clsLabel && items.some(x => x.fits)) {
+            const fitItems = items.filter(x => x.fits);
+            const otherItems = items.filter(x => !x.fits);
+            html += `<optgroup label="${E(label)}">${fitItems.map(it => `<option value="${E(it.v)}">${E(it.label)}</option>`).join('')}</optgroup>`;
+            html += `<optgroup label="Other">${otherItems.map(it => `<option value="${E(it.v)}">${E(it.label)}</option>`).join('')}</optgroup>`;
+          } else {
+            html = items.map(it => `<option value="${E(it.v)}">${E(it.label)}</option>`).join('');
+          }
+          if (['talent', 'companion', 'spell', 'artifact'].includes(t)) html += '<option value="custom">Custom…</option>';
+          const select = $m('#am-item', m);
+          select.innerHTML = html;
+          const available = items.find(item => !item.block);
+          if (available) select.value = available.v;
+        };
         const sync = () => {
           const t = $m('#am-type', m).value;
           const custom = t === 'custom';
           m.querySelector('[data-for="list"]').hidden = custom;
-          m.querySelector('[data-for="name"]').hidden = !custom && t !== 'talent' && t !== 'companion' && t !== 'spell' ? true : !(custom);
-          if (!custom) {
-            const items = catalogItems(t);
-            $m('#am-item', m).innerHTML = items.map(it => `<option value="${E(it.v)}">${E(it.label)}${it.full ? '' : ' (name only)'}</option>`).join('') + (['talent', 'companion', 'spell', 'artifact'].includes(t) ? '<option value="custom">Custom…</option>' : '');
-          }
+          renderFilter(t);
+          fillList();
           pick();
         };
         const pick = () => {
           const t = $m('#am-type', m).value, v = $m('#am-item', m).value;
           const own = t === 'custom' || v === 'custom';
           m.querySelector('[data-for="name"]').hidden = !own;
-          const it = own ? null : catalogItems(t).find(x => x.v === v);
-          $m('#am-prev', m).innerHTML = it ? `${it.text ? `<p>${E(it.text)}</p>` : ''}${it.ab.length ? `<ol>${it.ab.map(x => `<li>${E(Array.isArray(x) ? x[0] + '. ' + x[1] : x)}</li>`).join('')}</ol>` : '<p class="muted small">Name only. Type the abilities on the card.</p>'}` : '';
+          const it = own ? null : catalogItems(t, c).find(x => x.v === v);
+          $m('#am-prev', m).hidden = !it;
+          const block = it?.block || '';
+          $m('#am-status', m).textContent = block || (t === 'spell' ? 'Spells from the book are path cards. Choose Custom… for a house rule.' : t === 'artifact' ? 'Add artifacts after attuning to them in the story.' : '');
+          $m('[data-m="ok"]', m).disabled = !!block;
+          $m('#am-prev', m).innerHTML = it ? `${it.text ? `<p>${E(it.text)}</p>` : ''}${it.ab.length ? `<ol>${it.ab.map(x => `<li>${E(Array.isArray(x) ? x[0] + '. ' + x[1] : x)}</li>`).join('')}</ol>` : '<p class="muted small">No preset abilities.</p>'}` : '';
           const cost = t === 'artifact' ? 2 : t === 'class' ? 0 : 3;
           $m('#am-xp', m).checked = cost > 0; $m('#am-xp', m).disabled = cost === 0;
           $m('#am-xp-l', m).textContent = cost ? `Spend ${cost} experience (available: ${OB.xpAvail(c)})` : 'Class card: free';
         };
-        $m('#am-type', m).addEventListener('change', sync); $m('#am-item', m).addEventListener('change', pick); sync();
+        $m('#am-type', m).addEventListener('change', sync);
+        $m('#am-filter', m).addEventListener('change', () => { fillList(); pick(); });
+        $m('#am-item', m).addEventListener('change', pick);
+        sync();
       },
       onOk: m => {
         const t = $m('#am-type', m), kind = t.value, v = $m('#am-item', m).value;
         const own = kind === 'custom' || v === 'custom';
+        const item = own ? null : catalogItems(kind, c).find(x => x.v === v);
+        if (!own && (!item || item.block)) return false;
         const cost = kind === 'artifact' ? 2 : kind === 'class' ? 0 : 3;
         const pay = cost > 0 && $m('#am-xp', m).checked;
         if (pay && OB.xpAvail(c) < cost) { OB.toast('Not enough experience. Untick the box to add it free.'); return false; }
-        const withAb = (type, a) => OB.addAsset({ type, name: a.name, sub: a.sub, text: a.text || '', abilities: a.abilities ? a.abilities.map((x, j) => ({ text: x, on: j === 0 })) : undefined });
+        const withAb = (type, a) => OB.addAsset({
+          type,
+          name: a.name,
+          sub: a.sub,
+          cls: a.cls || '',
+          path: a.path || '',
+          tier: a.tier || 1,
+          maxHealth: a.maxHealth || 4,
+          health: a.maxHealth || 4,
+          text: a.text || '',
+          abilities: a.abilities ? a.abilities.map((x, j) => ({ text: x, on: j === 0 })) : undefined
+        });
         if (own) {
           const name = $m('#am-name', m).value.trim();
           if (!name) { OB.toast('Give it a name.'); return false; }
@@ -247,6 +338,9 @@
           const [, cls, path, i] = v.split('|');
           if (c.assets.some(a => a.type === 'path' && a.path === path && a.pathIdx === +i)) { OB.toast('You already have that card.'); return false; }
           OB.addPathCard(cls, path, +i);
+        } else if (kind === 'spell') {
+          const spell = OB.CATALOG.spell[+v.split('|')[1]];
+          OB.addPathCard(spell.cls, spell.path, spell.pathIdx);
         } else if (kind === 'artifact') withAb('artifact', OB.ARTIFACTS[+v.split('|')[1]]);
         else withAb(kind, OB.CATALOG[kind][+v.split('|')[1]]);
         if (pay) OB.spendXp(cost);
@@ -300,19 +394,111 @@
     ascend() { ascendModal(); },
     advance(el) {
       const n = +el.dataset.n;
+      if (n === 3) return assetModal();
       if (!OB.spendXp(n)) return;
-      OB.toast(`Spent ${n} XP. ${n === 3 ? 'Add a new asset.' : 'Mark an ability on an asset.'}`);
+      OB.toast(`Spent ${n} XP. Mark an ability on an asset.`);
       OB.ui.tab = 'character'; OB.refresh();
     },
 
     /* assets */
+    newGear() {
+      const c = OB.char();
+      const catalog = OB.EQUIPMENT;
+      OB.modal({
+        title: 'Add equipment', ok: 'Add',
+        html: `<label class="lbl">Item<select id="ge-preset">
+          ${Object.entries(OB.GEAR_SLOTS).map(([slot, label]) => `<optgroup label="${label}">${catalog.filter(item => item.slot === slot).map(item => `<option value="${item.id}">${E(item.name)}</option>`).join('')}</optgroup>`).join('')}
+          <option value="custom">Custom item…</option></select></label>
+          <p id="ge-preview" class="am-prev"></p>
+          <div id="ge-custom" hidden>
+            <label class="lbl">Name<input id="ge-name" type="text"></label>
+            <label class="lbl">Slot<select id="ge-slot">${Object.entries(OB.GEAR_SLOTS).map(([key, label]) => `<option value="${key}">${label}</option>`).join('')}</select></label>
+            <label class="lbl" id="ge-harm-label">Base harm<select id="ge-harm"><option value="2">2 · Deadly</option><option value="1">1 · Simple</option></select></label>
+            <label class="lbl">Description and effect<textarea id="ge-text" rows="3"></textarea></label>
+            <label class="lbl" id="ge-use-label">Use limit<select id="ge-use"><option value="">No tracked limit</option><option value="scene">Once per scene</option><option value="camp">Once per camp</option></select></label>
+            <label class="lbl">Focus per use<input type="number" id="ge-focus" value="0" min="0" max="6" step="1"></label>
+            <label class="chk" id="ge-attune-label"><input type="checkbox" id="ge-attune"><span class="box"></span><span>Requires attunement</span></label>
+          </div>`,
+        onOpen: m => {
+          const sync = () => {
+            const item = catalog.find(x => x.id === $m('#ge-preset', m).value);
+            const slot = $m('#ge-slot', m).value;
+            $m('#ge-custom', m).hidden = !!item;
+            $m('#ge-preview', m).hidden = !item;
+            $m('#ge-preview', m).textContent = item ? OB.gearMeta(item) + ' — ' + item.text : '';
+            $m('#ge-harm-label', m).hidden = slot !== 'weapon';
+            $m('#ge-use-label', m).hidden = slot === 'consumable';
+            $m('#ge-attune-label', m).hidden = slot === 'consumable';
+          };
+          m.addEventListener('change', sync);
+          sync();
+        },
+        onOk: m => {
+          const value = key => $m('#ge-' + key, m).value;
+          const preset = catalog.find(x => x.id === value('preset'));
+          const slot = value('slot');
+          const item = preset || {
+            name: value('name').trim(), text: value('text').trim(), slot, harm: +value('harm'),
+            use: slot === 'consumable' ? 'once' : value('use'),
+            focus: OB.clamp(Math.trunc(+value('focus')) || 0, 0, 6),
+            attune: slot !== 'consumable' && $m('#ge-attune', m).checked
+          };
+          if (!item.name) { OB.toast('Give it a name.'); return false; }
+          c.equipment.push({ ...item, id: OB.uid('g'), equipped: false, attuned: false, used: false });
+          OB.ui.open['sec:equipment'] = true;
+          OB.save(); OB.refresh();
+        }
+      });
+    },
+    equipGear(el) {
+      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
+      if (!item || item.slot === 'consumable') return;
+      if (!item.equipped && c.equipment.filter(g => g.slot === item.slot && g.equipped).length >= OB.gearLimit(item.slot)) {
+        return OB.toast('Unequip an item in that slot first.');
+      }
+      item.equipped = !item.equipped;
+      OB.save(); OB.refresh();
+    },
+    attuneGear(el) {
+      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
+      if (!item?.attune) return;
+      if (item.attuned) { item.attuned = false; OB.save(); OB.refresh(); return; }
+      if (c.equipment.filter(g => g.attuned).length >= 2) return OB.toast('Release an attunement first.');
+      OB.confirm('Did you succeed on Attune to an Artifact for this item?', 'Mark attuned', () => {
+        item.attuned = true; OB.save(); OB.refresh();
+      });
+    },
+    useGear(el) {
+      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
+      if (!item || OB.gearBlock(c, item)) return;
+      if (item.focus) OB.applyEffects({ focus: -item.focus });
+      if (item.use === 'once') c.equipment = c.equipment.filter(g => g !== item);
+      else if (item.use) item.used = true;
+      OB.logNote(`Used ${item.name}. ${item.text || ''}`);
+      OB.toast(`Used ${item.name}. Apply its effect at the table.`);
+    },
+    resetGear(el) {
+      OB.char().equipment.forEach(item => { if (item.use === el.dataset.period) item.used = false; });
+      OB.save(); OB.refresh();
+    },
+    delGear(el) {
+      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
+      if (!item) return;
+      OB.confirm(`Remove “${item.name}” from inventory?`, 'Remove', () => {
+        c.equipment = c.equipment.filter(g => g !== item); OB.save(); OB.refresh();
+      });
+    },
     newAsset() { assetModal(); },
     addPathCard(el) {
       const c = OB.char(); const { cls, path } = el.dataset; const i = +el.dataset.i;
+      const card = OB.PATH_CARDS[path][i];
       OB.modal({
-        title: `Add ${path} — ${OB.PATH_TIERS[i]}`, ok: 'Add',
-        html: `<label class="chk"><input type="checkbox" id="pc-xp" checked><span class="box"></span><span>Spend 3 experience (available: ${OB.xpAvail(c)})</span></label><p class="muted small">Untick if it is free: your starting Foundation, or a path gained when you Ascend.</p>`,
+        title: card.name, ok: 'Add',
+        html: `<p class="muted small">${E(path)} · ${E(card.tier)} · Tier ${i + 1}</p>
+          <div class="am-prev">${card.text ? `<p>${E(card.text)}</p>` : ''}<ol>${card.abilities.map(ability => `<li>${E(ability)}</li>`).join('')}</ol></div>
+          <label class="chk"><input type="checkbox" id="pc-xp" checked><span class="box"></span><span>Spend 3 experience (available: ${OB.xpAvail(c)})</span></label>`,
         onOk: m => {
+          if (OB.pathCardBlock(c, cls, path, i)) return false;
           const pay = $m('#pc-xp', m).checked;
           if (pay && OB.xpAvail(c) < 3) { OB.toast('Not enough experience.'); return false; }
           OB.addPathCard(cls, path, i);
@@ -461,11 +647,16 @@
     markFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); OB.markTrack(el.dataset.track); e.applied = e.applied || {}; e.applied[el.dataset.k] = true; OB.save(); OB.refresh(); },
     harmFromRoll(el) {
       const c = OB.char(); const e = c.log.find(x => x.id === cid(el));
-      const h = OB.harmFor(e, c.weaponHarm || 2, e.bonusHarm || 0);
+      const h = OB.harmFor(e, e.weaponHarm || OB.baseHarm(c), e.bonusHarm || 0);
       OB.markTrack(el.dataset.track, h); e.applied = e.applied || {}; e.applied[el.dataset.k] = true; OB.save(); OB.refresh();
     },
     bonusHarm(el) { const e = OB.char().log.find(x => x.id === cid(el)); e.bonusHarm = OB.clamp((e.bonusHarm || 0) + (+el.dataset.d), -2, 6); OB.save(); OB.refresh(); },
-    weapon(el) { OB.char().weaponHarm = +el.dataset.h; OB.save(); OB.refresh(); },
+    weapon(el) {
+      const c = OB.char(), entry = c.log.find(e => e.id === cid(el));
+      if (entry) entry.weaponHarm = +el.dataset.h;
+      else c.weaponHarm = +el.dataset.h;
+      OB.save(); OB.refresh();
+    },
     bondFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); bondModal(() => { e.applied = e.applied || {}; e.applied.bond = true; OB.save(); OB.refresh(); }); },
     completeFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); OB.completeTrack(e.trackId, e.hit); e.applied = e.applied || {}; e.applied.done = true; OB.save(); OB.refresh(); },
     recommit(el) {

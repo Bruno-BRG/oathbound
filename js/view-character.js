@@ -7,7 +7,6 @@
   const E = OB.esc, F = OB.f;
 
   OB.hooks = {
-    heritage() { /* nothing extra */ },
     class() {
       const c = OB.char();
       const info = OB.CLASS[c.cls];
@@ -25,6 +24,25 @@
   const TYPE_NAME = { class: 'Class card', path: 'Path card', talent: 'Talent', companion: 'Companion', artifact: 'Artifact', spell: 'Spell', custom: 'Asset' };
 
   /* ---------- identity ---------- */
+  function lineageBox(c) {
+    const her = OB.HERITAGES.find(h => h.key === c.heritage);
+    const up = OB.UPBRINGINGS.find(u => u.key === c.upbringing);
+    if (!her && !up) {
+      return '<p class="muted small lineage-empty">Choose a heritage (race) and upbringing above to display their abilities.</p>';
+    }
+    return `<div class="lineage-box">
+      ${her ? `<div class="lin-group">
+        <div class="lin-h"><span>Heritage — ${E(her.key)}</span><span class="muted small"><em>${E(her.tags)}</em></span></div>
+        <div class="lin-item"><span class="lin-k">Starting ability</span><div><strong>${E(her.ability[0])}.</strong> ${E(her.ability[1])}</div></div>
+        <div class="lin-item ${c.legacyAwakened ? 'on' : ''}"><span class="lin-k">Legacy ability <span class="lin-tag ${c.legacyAwakened ? 'on' : ''}">${c.legacyAwakened ? 'Awakened' : 'Unlocks on Ascend'}</span></span><div><strong>${E(her.legacy[0])}.</strong> ${E(her.legacy[1])}</div></div>
+      </div>` : ''}
+      ${up ? `<div class="lin-group">
+        <div class="lin-h"><span>Upbringing — ${E(up.key)}</span><span class="muted small"><em>${E(up.tags)}</em></span></div>
+        <div class="lin-item"><span class="lin-k">Upbringing ability</span><div><strong>${E(up.ability[0])}.</strong> ${E(up.ability[1])}</div></div>
+      </div>` : ''}
+    </div>`;
+  }
+
   function identity(c) {
     const cls = OB.CLASS[c.cls];
     const paths = cls ? cls.paths : [];
@@ -34,16 +52,16 @@
         <label class="fl">Pronouns${F.text('pronouns', c.pronouns, { ph: 'Pronouns', label: 'Pronouns' })}</label>
       </div>
       <div class="r2">
-        <label class="fl">Epithet${F.text('epithet', c.epithet, { ph: 'Epithet', label: 'Epithet' })}</label>
+        <label class="fl" title="A heroic title, nickname, or family name (see Family Names & Epithets in Oracles)">Epithet (title / surname)${F.text('epithet', c.epithet, { ph: 'e.g. the Wanderer, Oathkeeper, Blackwood', label: 'Epithet or title' })}</label>
         <label class="fl">Concept${F.text('concept', c.concept, { ph: 'History, hopes, flaws', label: 'Concept' })}</label>
       </div>
       <div class="chars" role="group" aria-label="Characteristics">
-        <label class="fl">Heritage${F.sel('heritage', c.heritage, OB.HERITAGES.map(h => h.key), { hook: 'heritage', label: 'Heritage' })}</label>
-        <label class="fl">Legacy from${F.sel('legacyFrom', c.legacyFrom, OB.HERITAGES.map(h => h.key), { blank: '— same —', hook: 'heritage', label: 'Legacy from' })}</label>
+        <label class="fl">Heritage (race)${F.sel('heritage', c.heritage, OB.HERITAGES.map(h => h.key), { label: 'Heritage (race)' })}</label>
         <label class="fl">Upbringing${F.sel('upbringing', c.upbringing, OB.UPBRINGINGS.map(u => u.key), { label: 'Upbringing' })}</label>
         <label class="fl">Class${F.sel('cls', c.cls, OB.CLASSES.map(x => x.key), { hook: 'class', label: 'Class' })}</label>
         <label class="fl">Path${F.sel('path', c.path, paths, { hook: 'path', blank: cls ? '— choose —' : 'Choose a class first', label: 'Path' })}</label>
       </div>
+      ${lineageBox(c)}
       ${c.extraPaths.length ? `<p class="muted small">Other paths walked: ${c.extraPaths.map(p => `${E(p.path)} (${E(p.cls)})`).join(', ')}</p>` : ''}
     </section>`;
   }
@@ -78,8 +96,38 @@
   }
 
   /* ---------- gear & notes ---------- */
+  function equipment(c) {
+    const count = slot => c.equipment.filter(item => item.slot === slot && item.equipped).length;
+    const loadout = Object.entries(OB.GEAR_SLOTS).filter(([slot]) => slot !== 'consumable').map(([slot, label]) =>
+      `<span>${label} ${count(slot)}/${OB.gearLimit(slot)}</span>`).join('');
+    const items = c.equipment.map(item => {
+      const block = OB.gearBlock(c, item);
+      const tracksUse = item.use || item.focus;
+      return `<article class="gear-item">
+        <div><h4>${E(item.name)}</h4><div class="muted small">${E(OB.gearMeta(item))}</div></div>
+        <p>${E(item.text)}</p>
+        <div class="row gap wrap">
+          ${item.slot !== 'consumable' ? `<button class="btn sm" type="button" data-act="equipGear" data-id="${item.id}" aria-label="${item.equipped ? 'Unequip' : 'Equip'} ${E(item.name)}">${item.equipped ? 'Unequip' : 'Equip'}</button>` : ''}
+          ${item.attune ? `<button class="btn sm ghost" type="button" data-act="attuneGear" data-id="${item.id}" aria-label="${item.attuned ? 'Release' : 'Attune'} ${E(item.name)}">${item.attuned ? 'Release bond' : 'Mark attuned'}</button>` : ''}
+          ${tracksUse ? `<button class="btn sm" type="button" data-act="useGear" data-id="${item.id}" ${block ? 'disabled' : ''} aria-label="Use ${E(item.name)}">Mark use</button>` : ''}
+          <button class="btn sm ghost" type="button" data-act="delGear" data-id="${item.id}" aria-label="Remove ${E(item.name)}">Remove</button>
+        </div>
+        ${tracksUse && block ? `<div class="muted small">${E(block)}</div>` : ''}
+      </article>`;
+    }).join('');
+    const reset = (period, label) => `<button class="btn sm ghost" type="button" data-act="resetGear" data-period="${period}" ${c.equipment.some(item => item.used && item.use === period) ? '' : 'disabled'}>${label}</button>`;
+    const body = `<div class="gear-toolbar">
+        <div class="row gap wrap"><button class="btn sm primary" type="button" data-act="newGear">${OB.icon('plus')} Add item</button>
+          ${reset('scene', 'Start new scene')}${reset('camp', 'Finish Make Camp')}</div>
+        <div class="row gap wrap muted small" aria-label="Equipment slots">${loadout}<span>Attuned ${c.equipment.filter(item => item.attuned).length}/2</span></div>
+      </div>
+      <p class="muted small">Supply covers ordinary provisions. Mark uses here, then apply the listed bonus or adjust the incoming harm or stress in the move.</p>
+      <div class="gear-items">${items || '<p class="empty">No items yet. Add something you carry.</p>'}</div>`;
+    return OB.band('equipment', 'Equipment', '', body);
+  }
+
   function gear(c) {
-    return `<section class="flat">
+    return `${equipment(c)}<section class="flat">
       <label class="fl">Gear &amp; Notes${F.area('gear', c.gear, { rows: 3, ph: 'Gear & Notes', label: 'Gear and notes' })}</label>
       <details class="more" data-key="more-notes" ${OB.ui.open['more-notes'] ? 'open' : ''}><summary>More notes</summary>
         <label class="fl">Background and flaws${F.area('background', c.background, { rows: 3, label: 'Background' })}</label>
@@ -149,9 +197,9 @@
       ${F.area(`assets#${a.id}.text`, a.text || '', { rows: 2, ph: 'Description', cls: 'asset-text', label: 'Description' })}
       <ul class="abil-list">${a.abilities.map((ab, i) => `<li class="${ab.on ? 'on' : ''}">
           <button type="button" class="dot ${ab.on ? 'on' : ''}" data-act="toggleAbility" data-id="${a.id}" data-i="${i}" aria-pressed="${!!ab.on}" aria-label="Mark ability ${i + 1}"></button>
-          <div class="ab-body">${F.area(`assets#${a.id}.abilities.${i}.text`, ab.text, { rows: 2, ph: 'Ability text…', cls: 'ab-text', label: 'Ability ' + (i + 1) })}</div>
+          <div class="ab-body">${ab.name ? `<div class="ab-name">${E(ab.name)}</div>` : ''}${F.area(`assets#${a.id}.abilities.${i}.text`, ab.text, { rows: 2, ph: 'Ability text…', cls: 'ab-text', label: 'Ability ' + (i + 1) })}</div>
           <button type="button" class="ib sm" data-act="delAbility" data-id="${a.id}" data-i="${i}" aria-label="Remove ability">−</button></li>`).join('')}</ul>
-      ${a.type === 'companion' ? compHealth(a) : ''}
+      ${a.type === 'companion' || a.companion ? compHealth(a) : ''}
       <footer class="asset-f">
         <button type="button" class="btn sm ghost" data-act="addAbility" data-id="${a.id}">+ Ability</button>
         <button type="button" class="btn sm" data-act="upgradeAsset" data-id="${a.id}" ${nOn >= a.abilities.length ? 'disabled' : ''}>Upgrade · 2 XP</button>
@@ -165,17 +213,16 @@
     if (c.cls) OB.CLASS[c.cls].paths.forEach(p => paths.push({ cls: c.cls, path: p }));
     c.extraPaths.forEach(p => paths.push(p));
     if (!paths.length) return '';
-    const own = c.assets.filter(a => a.type === 'path');
     return `<div class="paths-panel">
       <p class="muted small">Each path has three cards: Foundation (tier 1), Specialization (tier 2), Mastery (tier 3). Adding a path card costs 3 XP.</p>
       ${paths.map(p => `<div class="path-row"><div><strong>${E(p.path)}</strong> <span class="muted small">${E(p.cls)} path</span><div class="muted small">${E((OB.CLASS_INFO[p.cls].paths[p.path]) || '')}</div></div>
         <div class="row gap wrap">${OB.PATH_TIERS.map((tn, i) => {
-          const have = own.some(a => a.path === p.path && a.pathIdx === i);
-          const prevOk = i === 0 || own.some(a => a.path === p.path && a.pathIdx === i - 1);
-          const tierOk = c.tier >= i + 1;
-          const ok = !have && prevOk && tierOk;
-          const why = have ? 'Already added' : !prevOk ? 'Needs the card before it' : !tierOk ? 'Needs tier ' + (i + 1) : 'Add (3 XP)';
-          return `<button type="button" class="btn sm ${have ? 'ghost' : ''}" data-act="addPathCard" data-cls="${p.cls}" data-path="${p.path}" data-i="${i}" ${ok ? '' : 'disabled'} title="${why}">${have ? '✓ ' : ''}${tn}</button>`;
+          const block = OB.pathCardBlock(c, p.cls, p.path, i);
+          const have = block === 'Already on your sheet';
+          const card = (OB.PATH_CARDS[p.path] || [])[i];
+          const cn = (card && card.name) ? card.name : '';
+          const why = `${cn || tn} · ${block || 'Add (3 XP)'}`;
+          return `<button type="button" class="btn sm ${have ? 'owned' : ''}" data-act="addPathCard" data-cls="${p.cls}" data-path="${p.path}" data-i="${i}" ${block ? 'disabled' : ''} title="${E(why)}">${have ? '✓ ' : ''}${tn}</button>`;
         }).join('')}</div></div>`).join('')}
     </div>`;
   }
@@ -186,7 +233,7 @@
       <h5>Background questions</h5><ul>${info.bg.map(q => `<li>${E(q)}</li>`).join('')}</ul>
       <h5>Bond questions</h5><ul>${info.bond.map(q => `<li>${E(q)}</li>`).join('')}</ul>
       <h5>Oath seeds (d6)</h5><ol>${info.seeds.map(q => `<li>${E(q)}</li>`).join('')}</ol></details>` : '';
-    const body = `<p class="muted small">XP available: <strong>${OB.xpAvail(c)}</strong>. Class card, path, talent, companion, or artifact.</p>
+    const body = `<p class="muted small">XP available: <strong>${OB.xpAvail(c)}</strong></p>
       ${pathPanel(c)}
       <div class="asset-list">${c.assets.map(assetCard).join('') || '<p class="muted empty">No assets yet. Choose a class, or add a talent or companion.</p>'}</div>
       ${classQ}`;

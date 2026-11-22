@@ -50,7 +50,7 @@
       created: Date.now(),
       name: '', concept: '', pronouns: '', portrait: '', epithet: '',
       campaignName: '', campaignNotes: '', region: 'The Crownlands', factions: [], hexes: {},
-      heritage: '', legacyFrom: '', upbringing: '', cls: '', path: '',
+      heritage: '', upbringing: '', cls: '', path: '',
       extraPaths: [],            // paths gained by Ascend: [{cls, path}]
       stats: { agility: 0, strength: 0, finesse: 0, presence: 0, insight: 0 },
       ascStats: 0,               // +1 stat boosts taken through Ascend
@@ -62,6 +62,7 @@
       initiative: false,
       truths: {},                // world truths: {key: {pick, custom}}
       weaponHarm: 2,
+      equipment: [],
       bonds: [],                 // [{id, name, note}]
       tracks: [],                // [{id, kind, name, rank, ticks, done, notes, bg}]
       assets: [],                // [{id, type, name, sub, tier, text, abilities:[{text,on}], health, maxHealth}]
@@ -88,10 +89,33 @@
     out.xpSpent = Math.max(0, parseInt(out.xpSpent, 10) || 0);
     out.focusBonus = OB.clamp(parseInt(out.focusBonus, 10) || 0, 0, 6);
     out.tracks.forEach(t => { t.id = t.id || OB.uid('t'); t.ticks = OB.clamp(parseInt(t.ticks, 10) || 0, 0, 40); if (!OB.RANK[t.rank]) t.rank = 'dangerous'; });
-    out.assets.forEach(a => { a.id = a.id || OB.uid('a'); if (!Array.isArray(a.abilities)) a.abilities = []; });
+    out.assets.forEach(a => {
+      a.id = a.id || OB.uid('a');
+      if (!Array.isArray(a.abilities)) a.abilities = [];
+      const pathCard = a.type === 'path' ? OB.PATH_CARDS[a.path]?.[a.pathIdx] : null;
+      const catalog = OB.CATALOG[a.type] || [];
+      const preset = pathCard || catalog.find(card => card.name === a.name);
+      if (!preset) return;
+      if (a.abilities.length === 3 && a.abilities.every(ability => !ability.text?.trim())) {
+        a.abilities.forEach((ability, i) => { ability.text = preset.abilities[i]; });
+        if (!a.text || (pathCard && a.text === OB.CLASS_INFO[a.cls]?.paths[a.path])) a.text = preset.text || a.text;
+        if (!a.name) a.name = preset.name;
+      }
+      if (pathCard?.companion) a.companion = true;
+    });
     out.bonds.forEach(b => { b.id = b.id || OB.uid('b'); });
     out.journal.forEach(j => { j.id = j.id || OB.uid('j'); });
     out.focus = OB.clamp(parseInt(out.focus, 10) || 0, 0, OB.maxFocus(out));
+    const slots = {};
+    let attuned = 0;
+    out.equipment = (Array.isArray(out.equipment) ? out.equipment : []).filter(item =>
+      item && Object.hasOwn(OB.GEAR_SLOTS, item.slot)).map(item => {
+      const equipped = item.slot !== 'consumable' && !!item.equipped && (slots[item.slot] || 0) < OB.gearLimit(item.slot);
+      if (equipped) slots[item.slot] = (slots[item.slot] || 0) + 1;
+      const bound = item.slot !== 'consumable' && !!item.attune && !!item.attuned && attuned < 2;
+      if (bound) attuned++;
+      return { ...item, id: OB.uid('g'), equipped, attuned: bound, harm: item.harm === 1 ? 1 : 2, focus: OB.clamp(Number(item.focus) || 0, 0, 6) };
+    });
     return out;
   };
 

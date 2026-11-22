@@ -1,9 +1,7 @@
 /* ==========================================================================
    OATHBOUND — class cards, path cards, world data
-   Source: Oathbound Core Rulebook (Bruno Rocha Guimarães), chapters 3, 5 and 6.
-   Path cards for most paths live in Appendix A of the book. Their text is not
-   in this file yet: the sheet creates the card with its name, and you type
-   the abilities. Evoker is complete. Add more in OB.PATH_CARDS below.
+   Source: Oathbound Core Rulebook (Bruno Rocha Guimarães), chapters 3, 5, 6
+   and Appendix A. Text licensed CC BY-NC-SA 4.0.
    ========================================================================== */
 (function (OB) {
   'use strict';
@@ -142,56 +140,468 @@
     }
   };
 
-  /* ---------- path cards ----------
-     Each path has 3 cards: Foundation (tier 1), Specialization (tier 2), Mastery (tier 3).
-     A card with `abilities` is complete. A card with only a name is a placeholder you fill in.
-     To add the rest of Appendix A, add entries here:
-       PathName: [ {tier:'Foundation', name, spell:bool, abilities:['…','…','…']}, {tier:'Specialization'…}, {tier:'Mastery'…} ]
-  */
+  /* ---------- path cards: all 20 paths × 3 tiers from Appendix A ---------- */
   OB.PATH_CARDS = {
+    Champion: [
+      { tier: 'Foundation', name: 'Champion’s Blade', abilities: [
+        'When you Call a Duel or Enter the Fray against a single worthy foe, add +1. On a strong hit, take +1 additional momentum.',
+        'When you Strike a foe whose rank is equal to or higher than yours, inflict +1 harm on a strong hit.',
+        'When you Swear an Oath upon your weapon, add +1. When you Fulfill Your Oath, you may name your weapon. Once named, when you Endure Stress in battle, add +1.'] },
+      { tier: 'Specialization', name: 'Peerless', abilities: [
+        'When you burn momentum to improve the result of a Strike or Clash, inflict +2 harm on a hit.',
+        'When you Clash and score a strong hit, you may disarm your foe, break their guard, or drive them back. Take +1 momentum.',
+        'When you Compel by challenge, boast, or a show of skill, roll +strength and add +1.'] },
+      { tier: 'Mastery', name: 'Living Legend', abilities: [
+        'When you End the Fight against a formidable or greater foe and score a strong hit, take +1 experience. Your deed is sung across the land.',
+        'Once per fight, when you Strike or Clash, you may spend 1 focus to count a weak hit as a strong hit.',
+        'When you Face Death in battle, add +2. On a hit, you rise and fight on with +2 health.'] }
+    ],
+    Warlord: [
+      { tier: 'Foundation', name: 'Battle Captain', abilities: [
+        'When you Battle, add +1. On a strong hit, you and your allies take +1 momentum.',
+        'When you Aid Your Ally with a shouted command, add +1. On a strong hit, take +1 momentum yourself.',
+        'When you Compel soldiers, guards, or militia to follow you, add +1.'] },
+      { tier: 'Specialization', name: 'Shield of the Line', abilities: [
+        'When you fight side by side with allies or soldiers and must Endure Harm, you may spend 1 focus to suffer 2 less harm.',
+        'When you Clash to protect an ally, add +1. On a hit, they take +1 momentum.',
+        'When you Make Camp with soldiers or allies and choose to plan, take +2 momentum instead of +1.'] },
+      { tier: 'Mastery', name: 'General', abilities: [
+        'When you lead a company, a militia, or an army into battle, you may Battle +presence and add +2. On a strong hit, the enemy is routed, and your forces suffer no losses.',
+        'When you Secure an Advantage by planning an attack or a defense, roll +insight and add +1. On a strong hit, all allies add +1 to their next move in the fight.',
+        'When you Swear an Oath to defend a people or a place, add +2.'] }
+    ],
+    Sentinel: [
+      { tier: 'Foundation', name: 'Unbroken Guard', abilities: [
+        'When you Clash with a shield or heavy weapon, add +1. On a strong hit, an ally you protect takes +1 momentum.',
+        'When you stand guard over a place or person, Face Danger +insight to spot danger, and add +1. On a strong hit, you may take initiative when the threat comes.',
+        'When an ally under your protection must Endure Harm, you may step in and Endure Harm in their place. Add +1.'] },
+      { tier: 'Specialization', name: 'Iron Will', abilities: [
+        'When you Endure Harm or Endure Stress, you may spend 1 focus to reroll your action die.',
+        'When you are at 0 health and still fighting, add +1 to Strike and Clash.',
+        'Once per session, when you would mark wounded or shaken, you may ignore it.'] },
+      { tier: 'Mastery', name: 'The Last Gate', abilities: [
+        'When you hold a gate, a bridge, or a narrow way against a superior force, Battle +strength and add +2. On a strong hit, the enemy breaks against you.',
+        'When you Clash and score a strong hit, you may inflict your harm on every foe in reach.',
+        'When your allies Endure Harm while fighting at your side, they add +1.'] }
+    ],
+    Avenger: [
+      { tier: 'Foundation', name: 'Smite', spell: true, source: 'Divine magic', abilities: [
+        'When you Strike with a weapon wreathed in divine light, you may spend 1 focus to inflict +2 harm on a hit.',
+        'When you Strike a foe who has harmed the innocent, or one who serves a dark power, add +1.',
+        'When you Enter the Fray by calling your god’s name, roll +presence and add +1.'] },
+      { tier: 'Specialization', name: 'Mark of Judgment', spell: true, source: 'Divine magic', abilities: [
+        'When you spend 1 focus to mark a foe for judgment, you always know where they are. When you Gather Information to find them, add +2.',
+        'When you Strike a marked foe, inflict +1 harm on a hit.',
+        'When a marked foe flees, surrenders, or hides, you may Face Danger +presence to compel them to face you.'] },
+      { tier: 'Mastery', name: 'Wrath of Heaven', spell: true, source: 'Divine magic', abilities: [
+        'When you spend 3 focus and call down holy fire, Strike or Battle +presence and add +2. Undead and fiends suffer +2 harm on a hit.',
+        'When you Swear an Oath to destroy a great evil, take +2 momentum and add +1 to every Reach a Milestone for that oath.',
+        'When you Face Death while your oath of vengeance is unfulfilled, roll twice and choose the better result.'] }
+    ],
+    Beastmaster: [
+      { tier: 'Foundation', name: 'Animal Partner', companion: true, maxHealth: 4, text: 'Choose a beast: wolf, bear, great cat, hawk, or boar. It is a companion with a health track of +4.', abilities: [
+        'When you Strike or Clash alongside your beast, add +1. On a hit, inflict +1 harm.',
+        'When you Gather Information or Face Danger using your beast’s senses, add +1.',
+        'When your beast must Companion Endure Harm, add +1. It heals +1 health when you Make Camp.'] },
+      { tier: 'Specialization', name: 'Pack Bond', abilities: [
+        'When you and your beast attack the same foe, you may suffer -1 momentum to inflict your harm twice on a hit.',
+        'When you Secure an Advantage by sending your beast to flank, distract, or harry, add +1 and take +1 momentum on a hit.',
+        'Your beast’s health track increases to +5.'] },
+      { tier: 'Mastery', name: 'Lord of Beasts', abilities: [
+        'When you spend 2 focus and call the beasts of the land, they come to fight at your side for one scene. Battle +insight and add +2.',
+        'Your beast grows to a dire beast. When you Strike alongside it, inflict +2 harm on a hit instead of +1.',
+        'When you Face Death and your beast is near, it drags you back. Add +2.'] }
+    ],
+    Deadeye: [
+      { tier: 'Foundation', name: 'Hunter’s Aim', text: 'If you wield a bow…', abilities: [
+        'When you Secure an Advantage +agility by taking a moment to aim, envision where you intend to land your shot. Then, add +1 and take +1 momentum on a hit.',
+        'Once per fight, when you Strike or Clash, you may take extra shots and suffer -1 supply. When you do, reroll any dice. On a hit, inflict +2 harm and take +1 momentum.',
+        'When you Resupply by hunting, add +1 and take +1 momentum on a hit.'] },
+      { tier: 'Specialization', name: 'Called Shot', abilities: [
+        'When you Strike at range and score a strong hit, choose one: pin your foe in place, cut a rope or strap, or strike a weak point (+1 harm).',
+        'When you Face Danger +agility to shoot a missile, a beast in flight, or a falling object out of the air, add +1.',
+        'When you Enter the Fray from hiding with a bow, add +1. On a hit, you may make one Strike before the fight begins.'] },
+      { tier: 'Mastery', name: 'Arrow of Fate', abilities: [
+        'Once per oath, you may spend 3 focus to loose a perfect shot. Strike +agility and add +3. On a hit, inflict 4 harm.',
+        'When you Strike at extreme range, you suffer no penalty, and your arrows strike true through wind, fog, or darkness.',
+        'When you End the Fight with a shot, take +2 momentum.'] }
+    ],
+    Shadowblade: [
+      { tier: 'Foundation', name: 'Assassin', abilities: [
+        'When you Enter the Fray against an unaware foe, add +1. On a hit, you may make one Strike before the fight begins.',
+        'When you Strike an unaware or helpless foe, inflict +2 harm on a hit.',
+        'When you Gather Information about a target you have sworn to kill, add +1.'] },
+      { tier: 'Specialization', name: 'Shadow Step', spell: true, source: 'Shadow magic', abilities: [
+        'When you spend 1 focus to step into one shadow and out of another nearby, Face Danger +finesse to escape or reach a place. Add +1.',
+        'When you shadow step behind a foe and Strike, add +1 and inflict +1 harm on a hit.',
+        'When you Make Camp or Seek Haven, you may suffer -1 supply to prepare a poison. Your next Strike with a poisoned weapon inflicts +1 harm on a hit.'] },
+      { tier: 'Mastery', name: 'Unseen Death', spell: true, source: 'Shadow magic', abilities: [
+        'When you spend 2 focus to turn invisible, you can’t be seen until you attack or the scene ends. Add +2 when you Face Danger to sneak or escape.',
+        'When you Strike while invisible, inflict +2 harm on a hit.',
+        'When you End the Fight by assassination, the foe’s allies must flee, surrender, or Face Danger against you in terror.'] }
+    ],
+    Trickster: [
+      { tier: 'Foundation', name: 'Silver Tongue', abilities: [
+        'When you Compel by lying, flattering, or bluffing, add +1. On a strong hit, take +1 momentum.',
+        'When you Face Danger by talking your way out of trouble, roll +presence and add +1.',
+        'When you Gather Information by gossip and rumor, add +1.'] },
+      { tier: 'Specialization', name: 'Master of Disguise', abilities: [
+        'When you Secure an Advantage by taking on a disguise or a false identity, roll +finesse and add +1. On a hit, you can move freely among your enemies for a scene.',
+        'When you Face Danger to pick a pocket, a lock, or a trap, add +1.',
+        'When you Resupply by stealing or swindling, add +1.'] },
+      { tier: 'Mastery', name: 'The Grand Scheme', abilities: [
+        'When you Swear an Oath to pull off a great heist or con, you may mark 2 progress immediately. When you Reach a Milestone for it, take +1 momentum.',
+        'When your scheme goes wrong, you may spend 2 focus to reveal you planned for it all along. Turn a miss into a weak hit.',
+        'When you Compel a powerful person, add +2.'] }
+    ],
     Evoker: [
-      { tier: 'Foundation', name: 'Arcane Bolt', spell: true, abilities: [
+      { tier: 'Foundation', name: 'Arcane Bolt', spell: true, source: 'Learned magic', abilities: [
         'When you Strike or Clash with a bolt of raw force at range, roll +insight. This costs no focus. On a strong hit, inflict +1 harm.',
         'When you Strike with your bolt, you may spend 1 focus to make it a storm of light. On a hit, inflict +2 harm instead of +1.',
-        'When you Face Danger to shoot down a threat (an arrow, a falling stone, a beast in flight), roll +insight. On a hit, take +1 momentum.'] },
-      { tier: 'Specialization', name: 'Fireball', spell: true, abilities: [
+        'When you Endure Harm from an attack you can see coming, you may spend 1 focus to raise a shield of force. If you do, suffer 2 less harm.'] },
+      { tier: 'Specialization', name: 'Fireball', spell: true, source: 'Learned magic', abilities: [
         'When you Strike or Battle by hurling a bead of fire that bursts into flame, roll +insight and spend 1 focus. On a hit, inflict +1 harm, and the fire strikes every foe near your target. You can’t use this spell if your allies are too close.',
         'When you score a strong hit with your fireball, the flames spread to the place around your foes. Envision how this changes the fight, and take +1 momentum.',
         'When a foe casts a spell at you, you may spend 1 focus and Face Danger +insight to unravel it. On a hit, the magic fails.'] },
-      { tier: 'Mastery', name: '' }
+      { tier: 'Mastery', name: 'Meteor Swarm', spell: true, source: 'Learned magic', abilities: [
+        'When you spend 3 focus and call fire from the sky upon a battlefield, a fortress, or a horde, Battle +insight and add +2. On a hit, the enemy is broken or scattered. On a miss, the fire falls where it will. Roll on the Miscast oracle.',
+        'When you use this spell in a fight, you may instead Strike +insight against a single foe and inflict 4 harm on a hit.',
+        'When you score a strong hit with this spell, take +2 momentum and your foes must flee, surrender, or face you alone.'] }
+    ],
+    Seer: [
+      { tier: 'Foundation', name: 'Read the Weave', spell: true, source: 'Learned magic', abilities: [
+        'When you Gather Information about a magical object, place, or creature, roll +insight and add +1. On a strong hit, also learn one weakness or hidden purpose.',
+        'When you Attune to an Artifact, add +1. On a weak hit, you may count it as a strong hit if you Endure Stress (2).',
+        'When you Ask the Oracle about magic, roll twice and choose the result.'] },
+      { tier: 'Specialization', name: 'Far Sight', spell: true, source: 'Learned magic', abilities: [
+        'When you spend 1 focus to send your sight to a place you know or can see on a map, Gather Information +insight from a distance. You see and hear, but cannot act there.',
+        'When you spend 1 focus to vanish and reappear a short distance away, Face Danger +insight to escape a threat. Add +1.',
+        'When you Undertake a Journey and use far sight to scout ahead, add +1 and take +1 momentum on a strong hit.'] },
+      { tier: 'Mastery', name: 'Word of Unmaking', spell: true, source: 'Learned magic', abilities: [
+        'When you speak the true name of a creature, spell, or artifact and spend 3 focus, Cast a Spell +insight and add +2. On a strong hit, it is undone: banished, broken, or destroyed.',
+        'When you Gather Information to learn a true name, add +2.',
+        'When you glimpse the future before a danger, spend 2 focus. Once during the scene, you may reroll any dice.'] }
+    ],
+    Stormblood: [
+      { tier: 'Foundation', name: 'Storm Spark', spell: true, source: 'Blood magic', abilities: [
+        'When you Strike or Clash with lightning or fire from your hands, roll +presence. This costs no focus. On a strong hit, take +1 momentum.',
+        'When you Face Danger against fire, lightning, or a storm, add +1.',
+        'When you are angry or afraid and roll a match on a spell, the storm surges: inflict +1 harm, or take +1 focus.'] },
+      { tier: 'Specialization', name: 'Call Lightning', spell: true, source: 'Blood magic', abilities: [
+        'When you spend 2 focus under an open sky, Strike with a bolt of lightning, roll +presence, and inflict +2 harm on a hit.',
+        'When a storm is already raging, the spell costs 1 focus.',
+        'When you score a strong hit, the lightning leaps to a second foe. Inflict your harm on both.'] },
+      { tier: 'Mastery', name: 'Eye of the Storm', spell: true, source: 'Blood magic', abilities: [
+        'When you spend 3 focus to become a living storm, you fly on the wind, and you add +2 to Strike, Battle, and Face Danger until the scene ends. Then Endure Stress (2 stress).',
+        'When you Undertake a Journey by riding the storm, mark progress twice on a hit.',
+        'When you Overreach, add +1.'] }
+    ],
+    Wildsoul: [
+      { tier: 'Foundation', name: 'Wild Surge', spell: true, source: 'Blood magic', abilities: [
+        'When you Cast a Spell, you may let your magic run wild. Add +2. Then roll on the Miscast oracle, even on a hit. On a hit, choose whether the miscast happens.',
+        'When you roll a match on any move, take +1 focus.',
+        'When you Face Danger by a burst of chaos magic, roll +presence and add +1.'] },
+      { tier: 'Specialization', name: 'Bend Luck', spell: true, source: 'Blood magic', abilities: [
+        'When you or an ally makes a move, you may spend 1 focus to reroll one challenge die.',
+        'When you Ask the Oracle, you may spend 1 focus to roll twice and choose.',
+        'When you Pay the Price, you may roll on the table twice and choose.'] },
+      { tier: 'Mastery', name: 'Chaos Unbound', spell: true, source: 'Blood magic', abilities: [
+        'When you spend 3 focus, you may Cast a Spell of any kind, even one outside your class. Roll +presence and add +2. On a miss, roll on the Miscast oracle twice.',
+        'When you roll on the Miscast oracle, you may roll twice and choose.',
+        'When you Face Death, chaos saves you. Add +2.'] }
+    ],
+    Lightbringer: [
+      { tier: 'Foundation', name: 'Healing Word', spell: true, source: 'Divine magic', abilities: [
+        'When you Heal by calling on divine power, roll +presence. This costs no focus. On a hit, also take or give +1 spirit.',
+        'When you spend 1 focus, you may Heal at a distance, or Heal two people at once.',
+        'When you Strike with holy fire, roll +presence. This costs no focus. Against undead or fiends, inflict +1 harm on a hit.'] },
+      { tier: 'Specialization', name: 'Holy Ward', spell: true, source: 'Divine magic', abilities: [
+        'When you spend 1 focus to raise a circle of holy light, undead, fiends, and the fey cannot cross it unless they Face Danger against you. You may Face Danger +presence to hold the circle.',
+        'When you bless an ally before a danger, spend 1 focus. The next time they make a move to face that danger, they add +1 and take +1 momentum on a hit.',
+        'When you Heal and score a strong hit, you may also clear one condition: wounded or shaken.'] },
+      { tier: 'Mastery', name: 'Resurrection', spell: true, source: 'Divine magic', abilities: [
+        'When an ally dies, you may Perform a Ritual (extreme) to call them back. If you score a hit, they return, but mark one bane or burden of their choice.',
+        'When an ally must Face Death in your presence, you may spend 2 focus to let them roll twice and choose the better result.',
+        'When you spend 2 focus to call a servant of your god, it aids you for one scene. You and your allies add +1 to all moves where its help makes sense.'] }
+    ],
+    Gravekeeper: [
+      { tier: 'Foundation', name: 'Speak with the Dead', spell: true, source: 'Divine magic', abilities: [
+        'When you spend 1 focus to call the spirit of a corpse, you may Gather Information by asking it questions. Add +1 if you share a bond. On a weak hit, the spirit also delivers troubling news. Endure Stress (1 stress).',
+        'You may also speak with the long dead, if you have their bones or an object they loved.',
+        'When you Compel a ghost or haunt, roll +presence and add +1.'] },
+      { tier: 'Specialization', name: 'Lay to Rest', spell: true, source: 'Divine magic', abilities: [
+        'When you Strike or Battle against the undead with your holy symbol raised, roll +presence and add +1. On a strong hit, inflict +2 harm.',
+        'When you Endure Stress from death, the dead, or despair, add +1.',
+        'When you perform last rites for a fallen ally or foe, take +1 spirit and +1 momentum.'] },
+      { tier: 'Mastery', name: 'Gate of Souls', spell: true, source: 'Divine magic', abilities: [
+        'When you spend 3 focus and open the gate of death, every undead in the scene must Face Danger against you or be destroyed. Battle +presence and add +2.',
+        'When you Face Death, you walk the land of the dead as a guest. Add +2, and on a hit, return with a secret.',
+        'When you Perform a Ritual involving the dead, add +2 to the progress roll.'] }
+    ],
+    Shapeshifter: [
+      { tier: 'Foundation', name: 'Many Shapes', abilities: [
+        'You may take your beast form without spending focus once per scene. While in beast form, you add +1 to Face Danger and Strike where the form helps.',
+        'When you Undertake a Journey in beast form, add +1.',
+        'When you Endure Harm in beast form, you may return to your own form and ignore the harm. Then suffer -1 momentum.'] },
+      { tier: 'Specialization', name: 'Dire Form', abilities: [
+        'When you spend 1 focus to take a dire form (a cave bear, a sabretooth, a giant eagle), you are a formidable creature. Strike and Clash +strength, and inflict +2 harm on a hit.',
+        'When you Enter the Fray in a dire form, add +2.',
+        'When you take the form of a tiny creature, you can go almost anywhere unseen. Add +2 to Face Danger to sneak.'] },
+      { tier: 'Mastery', name: 'Primal Avatar', abilities: [
+        'When you spend 3 focus to take the form of a legendary beast (a wyvern, a great elk, a primeval bear), Battle or Strike +strength and add +2. You may fly or swim as the form allows.',
+        'When you are in beast form and must Face Death, add +2.',
+        'You can keep your beast form while you speak and use your spells.'] }
+    ],
+    Greenwarden: [
+      { tier: 'Foundation', name: 'Thornwhip', spell: true, source: 'Wild magic', abilities: [
+        'When you Strike or Clash with a whip of thorns, roll +presence. This costs no focus. On a strong hit, you may pull your foe toward you or drag them down.',
+        'When you spend 1 focus to make roots and vines grasp at your foes, Secure an Advantage +presence. On a hit, they are held. You and your allies add +1 to Strike against them.',
+        'When you Resupply in the wild, add +1. On a strong hit, take +1 more supply.'] },
+      { tier: 'Specialization', name: 'Barkskin', spell: true, source: 'Wild magic', abilities: [
+        'When you spend 1 focus to harden your skin like bark, suffer 1 less harm when you Endure Harm until the scene ends. You may cast it on an ally instead.',
+        'When you Heal with herbs and green magic, roll +presence and add +1.',
+        'When you Make Camp in a forest or grove, add +1 and take +1 spirit on a hit.'] },
+      { tier: 'Mastery', name: 'Earthquake', spell: true, source: 'Wild magic', abilities: [
+        'When you spend 3 focus and shake the earth, Battle +presence and add +2. On a hit, walls fall, foes are thrown down, and the battlefield changes.',
+        'When you Face Danger to open a passage in rock or bring down a cliff, add +2.',
+        'When you spend 2 focus, you may wake a great tree or a stone giant to fight for you for one scene.'] }
+    ],
+    Warsinger: [
+      { tier: 'Foundation', name: 'Battle Hymn', spell: true, source: 'Song magic', abilities: [
+        'When you Enter the Fray or Battle with a war song, roll +presence. On a hit, you and your allies take +1 momentum.',
+        'When you spend 1 focus as you sing in a fight, your allies add +1 the next time they Strike or Clash.',
+        'When you Endure Stress while singing, add +1.'] },
+      { tier: 'Specialization', name: 'Dissonant Whispers', spell: true, source: 'Song magic', abilities: [
+        'When you Strike with a whisper of terrible music, roll +presence. This costs no focus. Your foe suffers 1 harm, and you take +1 momentum on a hit.',
+        'When you spend 1 focus as you Strike with dissonant whispers, your foe is driven back in terror. Inflict +1 harm on a hit.',
+        'When you Compel by threatening with your magic, add +1.'] },
+      { tier: 'Mastery', name: 'Ballad of Heroes', spell: true, source: 'Song magic', abilities: [
+        'When you spend 2 focus and sing the ballad of a great deed, you and your allies add +1 to all moves for the rest of the scene.',
+        'When you Fulfill Your Oath and compose a song of it, you and your allies take +1 experience.',
+        'When an ally must Face Death and you sing for them, they add +2.'] }
+    ],
+    Enchanter: [
+      { tier: 'Foundation', name: 'Words of Charm', spell: true, source: 'Song magic', abilities: [
+        'When you Compel with a magical song or charming words, spend 1 focus and add +2.',
+        'When you Forge a Bond, add +1.',
+        'When you Make Camp and choose to relax, you may share a song or story. You and your allies may each take +1 spirit or +1 momentum.'] },
+      { tier: 'Specialization', name: 'Lullaby', spell: true, source: 'Song magic', abilities: [
+        'When you spend 1 focus to sing a soft, magical song, Secure an Advantage +presence to put a beast or a few weak foes to sleep. On a hit, they sleep until roughly woken.',
+        'When you spend 2 focus, your lullaby can affect a dangerous foe, or a crowd.',
+        'When someone you have charmed is asked to act against you, they must make a choice. Ask the Oracle (likely) to see if they refuse.'] },
+      { tier: 'Mastery', name: 'Song of Ages', spell: true, source: 'Song magic', abilities: [
+        'When you spend 3 focus and sing to a crowd, a court, or an army, Compel +presence and add +3. On a strong hit, they will follow you for a time.',
+        'When you Seek Haven and perform, take +2 momentum and you may choose one more option.',
+        'When you Gather Information from the dead or the fey by song, roll +presence and add +1.'] }
+    ],
+    Fiendbound: [
+      { tier: 'Foundation', name: 'Eldritch Blast', spell: true, source: 'Pact magic', abilities: [
+        'When you Strike or Clash with a beam of hellfire, roll +presence. This costs no focus. On a strong hit, take +1 momentum.',
+        'When you Strike with eldritch blast, you may spend 1 focus to hurl your foe back or knock them down. On a hit, inflict +1 harm.',
+        'When you spend 1 focus to curse a foe you can see, the next time you Strike them, add +1 and inflict +1 harm on a hit.'] },
+      { tier: 'Specialization', name: 'Infernal Servant', spell: true, source: 'Pact magic', abilities: [
+        'When you spend 2 focus to call a servant of your patron (an imp, a hellhound, a horned brute), it serves you for a scene. It can fight as a dangerous foe on your side, scout, or carry a message.',
+        'When your servant fights with you, add +1 to Strike.',
+        'You see in darkness, even magical darkness. When you Face Danger or Gather Information in the dark, add +1.'] },
+      { tier: 'Mastery', name: 'Open the Gate', spell: true, source: 'Pact magic', abilities: [
+        'When you spend 3 focus in a fight, you may call your patron’s power through a brief rift. Battle +presence and add +2. On a miss, something else comes through.',
+        'When you Perform a Ritual to open a gate to the Abyss, add +2 to the progress roll.',
+        'When you Face Death, your patron may claim you. Roll twice and choose; if you live, you owe a great service.'] }
+    ],
+    Feybound: [
+      { tier: 'Foundation', name: 'Fey Glamour', spell: true, source: 'Pact magic', abilities: [
+        'When you Compel by beguiling someone with fey magic, spend 1 focus and add +2. On a hit, they remember nothing strange.',
+        'When you Face Danger by cloaking yourself in an illusion, roll +presence and add +1.',
+        'When you Strike with a lance of moonlight, roll +presence. This costs no focus.'] },
+      { tier: 'Specialization', name: 'Otherwhere Step', spell: true, source: 'Pact magic', abilities: [
+        'When you spend 1 focus to step through the Otherwhere and reappear nearby, Face Danger +presence to escape or reach a place. Add +1.',
+        'When you spend 2 focus, you may make one person see you as someone they trust for a scene.',
+        'When you make a bargain with a fey creature, you may Ask the Oracle to learn its hidden price before you agree.'] },
+      { tier: 'Mastery', name: 'Court of Thorns', spell: true, source: 'Pact magic', abilities: [
+        'When you spend 3 focus to bring a piece of the Otherwhere into the world, the place becomes a dream for one scene. Battle +presence and add +2. Your foes are lost, charmed, or afraid.',
+        'When you Undertake a Journey through the Otherwhere, mark progress twice on a hit, but each segment may take a day or a year.',
+        'When you Face Death, the fey court bargains for you. Add +2. On a hit, Swear an Oath to your patron.'] }
     ]
   };
 
-
-  /* ---------- catalog: talents, companions, spells ----------
-     Cards with `abilities` are complete (text printed in the book's chapters 1 to 6).
-     Cards marked todo:true have only the name: the book prints them in Appendix A.
-     Add or complete an entry here and it shows up in "Add asset" at once:
-       { name, sub, text, abilities:['…','…','…'], todo:false } */
+  /* ---------- catalog: all 24 talents, 8 companions, and 38 spells from Appendix A ---------- */
   OB.CATALOG = {
     talent: [
+      { name: 'Herbalist', sub: 'Talent', abilities: [
+        'When you Heal using herbal remedies, and you have at least +1 supply, choose one (before rolling): add +2; or suffer -1 supply and take +1 momentum on a hit.',
+        'When you Heal and score a strong hit, you or your patient also take +1 spirit.',
+        'When you Make Camp and choose to recuperate, add +1. On a hit, you may suffer -1 supply to take +1 additional health.'] },
+      { name: 'Sailor', sub: 'Talent', abilities: [
+        'When you Undertake a Journey by ship or boat, add +1.',
+        'When you Face Danger on deck, in rough water, or in a storm, add +1.',
+        'When you Seek Haven in a port, take +1 momentum on a hit.'] },
+      { name: 'Explorer', sub: 'Talent', abilities: [
+        'When you Undertake a Journey and score a strong hit, take +1 momentum in addition to your other choices.',
+        'When you Reach Your Destination and score a strong hit, take +1 experience the first time you find a place no one has mapped.',
+        'When you Gather Information to find your way through a ruin, add +1.'] },
+      { name: 'Blacksmith', sub: 'Talent', abilities: [
+        'When you Make Camp or Seek Haven with tools, you may repair a broken weapon, shield, or armor. Take +1 momentum.',
+        'When you Secure an Advantage by improving your gear before a fight, add +1. On a hit, your next Strike inflicts +1 harm.',
+        'When you Compel or Seek Haven among craftsfolk, add +1.'] },
+      { name: 'Linguist', sub: 'Talent', abilities: [
+        'When you Compel or Gather Information in a foreign tongue, add +1.',
+        'When you Gather Information from old writing, add +1. On a strong hit, take +1 momentum.',
+        'When you meet a people whose language you don’t speak, you may Face Danger +insight to learn enough to be understood.'] },
+      { name: 'Noble Born', sub: 'Talent', abilities: [
+        'When you Compel nobles, officials, or servants, add +1.',
+        'When you Resupply or Seek Haven in a town where your name is known, take +1 supply on a hit.',
+        'When you Swear an Oath to restore your house’s honor, add +1.'] },
+      { name: 'Veteran', sub: 'Talent', abilities: [
+        'When you Enter the Fray, add +1.',
+        'When you Battle, add +1. On a strong hit, take +1 momentum.',
+        'When you Endure Stress from the horrors of war, add +1.'] },
+      { name: 'Brawler', sub: 'Talent · unarmed or improvised weapon', text: 'If you fight unarmed or with an improvised weapon…', abilities: [
+        'When you Strike or Clash, add +1. You inflict 2 harm instead of 1.',
+        'When you Secure an Advantage by grappling, add +1. On a hit, your foe is held.',
+        'When you Compel in a tavern or a brawl, add +1.'] },
+      { name: 'Merchant', sub: 'Talent', abilities: [
+        'When you Compel by bartering, add +1. On a strong hit, take +1 supply.',
+        'When you Resupply in a town or city, add +1.',
+        'When you Gather Information about prices, routes, or rivals, add +1.'] },
+      { name: 'Ruin Delver', sub: 'Talent', abilities: [
+        'When you Face Danger to avoid a trap, a collapse, or a hazard in a ruin, add +1.',
+        'When you Gather Information in a ruin, add +1. On a strong hit, you also find treasure. Roll on the Treasure oracle.',
+        'When you Undertake a Journey through a ruin or the deep places, add +1.'] },
+      { name: 'Slayer', sub: 'Talent', abilities: [
+        'When you Gather Information by tracking a monster, or when you Secure an Advantage by readying yourself for a fight against one, add +1 and take +1 momentum on a hit.',
+        'When you Swear an Oath to slay a monster, you may reroll any dice. When you Fulfill Your Oath and mark experience, take +1 experience.',
+        'When you slay a monster (at least formidable), you may take a trophy. When you or an ally later perform a ritual, reroll any dice (one time only).'] },
+      { name: 'Survivor', sub: 'Talent', abilities: [
+        'When you Endure Harm while at +2 health or less, add +1.',
+        'When you are Out of Supply, you may Resupply +insight and add +2.',
+        'When you Face Death, add +1. On a hit, take +1 momentum.'] },
+      { name: 'Fearless', sub: 'Talent', abilities: [
+        'When you Endure Stress from fear or terror, add +1.',
+        'When you Enter the Fray against a frightening foe, roll +presence and add +1.',
+        'When you Face Desolation, add +1.'] },
+      { name: 'Swift', sub: 'Talent', abilities: [
+        'When you Face Danger +agility to run, chase, or flee, add +1.',
+        'When you Enter the Fray and score a strong hit, take +1 additional momentum.',
+        'When you Undertake a Journey on foot at speed, you may mark progress and take +1 momentum without suffering -1 supply.'] },
+      { name: 'Swordmaster', sub: 'Talent · needs a sword', text: 'If you wield a sword…', abilities: [
+        'When you burn momentum to improve your result on a Strike or Clash, inflict +2 harm on a hit.',
+        'When you Secure an Advantage by studying a foe’s fighting style, add +1. On a hit, you may also reroll your action die the next time you Strike or Clash against them.',
+        'When you Swear an Oath upon your blade, add +1. When you Fulfill Your Oath, you may name your sword. Once named, when you Endure Stress in battle, add +1.'] },
+      { name: 'Archer', sub: 'Talent · needs a bow', text: 'If you wield a bow…', abilities: [
+        'When you Secure an Advantage +agility by taking a moment to aim, envision where you intend to land your shot. Then, add +1 and take +1 momentum on a hit.',
+        'Once per fight, when you Strike or Clash, you may take extra shots and suffer -1 supply. When you do, reroll any dice. On a hit, inflict +2 harm and take +1 momentum.',
+        'When you Resupply by hunting, add +1 and take +1 momentum on a hit.'] },
+      { name: 'Twin Blades', sub: 'Talent · weapon in each hand', text: 'If you wield a weapon in each hand…', abilities: [
+        'When you Strike or Clash with both blades, add +1. On a strong hit, take +1 momentum.',
+        'When you Face Danger to deflect a blow or a missile, add +1.',
+        'When you Strike and score a hit, you may suffer -1 momentum to attack a second foe nearby. Inflict your harm on both.'] },
+      { name: 'Duelist', sub: 'Talent · single foe with a light blade', text: 'If you fight a single foe with a light blade…', abilities: [
+        'When you Clash, you may roll +finesse. On a strong hit, take +1 momentum.',
+        'When you Call a Duel, add +1. When you choose a boast, take +1 additional momentum.',
+        'When you Secure an Advantage by taunting a foe into a reckless attack, roll +presence. On a hit, your next Strike against them inflicts +1 harm.'] },
       { name: 'Shieldwall', sub: 'Talent · needs a shield at the ready', text: 'If you wield a shield…', abilities: [
         'When you Clash with a shield in hand, add +1. On a strong hit, you may also protect an ally: they take +1 momentum.',
         'When you Endure Harm from an attack that your shield can stop, spend 1 focus to suffer 1 less harm.',
         'When forced to Endure Harm in a fight, you may instead sacrifice your shield and ignore all harm. If you do, your shield is destroyed or will require extensive repair; suffer −2 momentum.'] },
-      { name: 'Swordmaster', sub: 'Talent', todo: true }, { name: 'Archer', sub: 'Talent', todo: true },
-      { name: 'Healer', sub: 'Talent', todo: true }, { name: 'Sailor', sub: 'Talent', todo: true },
-      { name: 'Scholar of Beasts', sub: 'Talent', todo: true }, { name: 'Herbalist', sub: 'Talent', todo: true }
+      { name: 'Plate and Steel', sub: 'Talent · heavy armor', abilities: [
+        'When you wear heavy armor and mark encumbered, you may suffer 1 less harm when you Endure Harm (to a minimum of 1), and add +1 when you Face Danger to resist a blow.',
+        'When you Clash while armored, you may roll +strength. On a strong hit, take +1 momentum.',
+        'When you Make Camp and care for your armor, you may clear encumbered until you break camp.'] },
+      { name: 'Banner-Sworn', sub: 'Talent · bond with leader or faction', text: 'You share a bond with a leader or faction.', abilities: [
+        'When you Swear an Oath in service to your leader or faction, add +1. When you Fulfill Your Oath for them, take +1 experience.',
+        'When you Battle under your banner, or rally others to it, add +1 and take +1 momentum on a hit.',
+        'When you Compel in the name of your leader or faction, add +1.'] },
+      { name: 'Battle-Scarred', sub: 'Talent · requires maimed', text: 'You are maimed.', abilities: [
+        'Your max momentum is not reduced by the maimed debility. When you Endure Harm, add +1.',
+        'When you Compel or Face Danger by showing your scars and your will, roll +strength and add +1.',
+        'When you Face Death, add +1.'] },
+      { name: 'Alchemist', sub: 'Talent', abilities: [
+        'When you Make Camp or Seek Haven with your tools, you may suffer -1 supply to brew one consumable: a healing potion, a potion of focus, or a flask of alchemical fire (2 harm when thrown).',
+        'When you Heal using your potions and salves, roll +insight and add +1.',
+        'When you Secure an Advantage with a smoke bomb, acid, or alchemical trick, add +1 and take +1 momentum on a hit.'] },
+      { name: 'Monster Lore', sub: 'Talent', abilities: [
+        'When you Gather Information about a monster, beast, or foe, add +1. On a hit, also learn one weakness.',
+        'When you Enter the Fray against a creature you have studied, add +1 and take +1 momentum on a hit.',
+        'When you slay a monster (at least formidable), you may take a trophy. When you or an ally later face its kind, add +1 once per fight.'] }
     ],
     companion: [
-      { name: 'Hawk', sub: 'Companion', text: 'Your hawk can aid you when it is aloft.', abilities: [
+      { name: 'Hawk', sub: 'Companion', maxHealth: 3, text: 'Your hawk can aid you when it is aloft.', abilities: [
         'Far-seeing: When you Undertake a Journey, or when you Resupply by hunting for small game, add +1.',
         'Fierce: When you Secure an Advantage +agility using your hawk to harass and distract your foes, add +1 and take +1 momentum on a hit.',
         'Vigilant: When you Face Danger +insight to detect an approaching threat, or when you Enter the Fray +insight against an ambush, add +2.'] },
-      { name: 'Horse', sub: 'Companion', todo: true }, { name: 'Hound', sub: 'Companion', todo: true },
-      { name: 'Familiar', sub: 'Companion', todo: true }, { name: 'Hired Blade', sub: 'Companion', todo: true }
+      { name: 'Horse', sub: 'Companion', maxHealth: 5, text: 'You and your horse ride as one.', abilities: [
+        'Swift: When you Face Danger +agility using your horse’s speed and grace, or when you Undertake a Journey, add +1.',
+        'Fearless: When you Enter the Fray or Secure an Advantage +presence by charging into combat, add +1 and take +1 momentum on a hit.',
+        'Mighty: When you Strike or Clash at close range while mounted, add +1 and inflict +1 harm on a hit.'] },
+      { name: 'Hound', sub: 'Companion', maxHealth: 4, text: 'Your hound is your loyal companion.', abilities: [
+        'Sharp: When you Gather Information using your hound’s keen senses to track your quarry or investigate a scene, add +1 and take +1 momentum on a hit.',
+        'Ferocious: When you Strike or Clash alongside your hound and score a hit, inflict +1 harm.',
+        'Loyal: When you Endure Stress in the company of your hound, add +1.'] },
+      { name: 'Familiar', sub: 'Companion', maxHealth: 2, text: 'A small spirit in the shape of an owl, a cat, a toad, or a raven.', abilities: [
+        'Watcher: When you Gather Information by sending your familiar to spy, add +1. You can see through its eyes.',
+        'Spell-carrier: When you use a spell, you may cast it through your familiar, as if you stood where it is.',
+        'Bound Spirit: When you Center Yourself with your familiar nearby, add +1. When you Overreach, your familiar may suffer the harm in your place.'] },
+      { name: 'Great Cat', sub: 'Companion', maxHealth: 4, text: 'A panther, a snow lion, or a striped hunter of the steppes.', abilities: [
+        'Stalker: When you Face Danger or Enter the Fray by stealth with your cat at your side, add +1.',
+        'Pounce: When you Strike alongside your cat against an unaware foe, inflict +1 harm on a hit.',
+        'Guardian: When you Make Camp with your cat keeping watch, add +1.'] },
+      { name: 'Hireling', sub: 'Companion', maxHealth: 4, text: 'A sworn sword, a loyal squire, or a porter who knows the roads.', abilities: [
+        'Strong Back: When you Undertake a Journey or Resupply with your hireling’s help, add +1.',
+        'Shield-Bearer: When you Clash with your hireling fighting at your side, add +1.',
+        'Steadfast: When you Endure Stress, your hireling’s loyalty steadies you. Add +1. If you have a bond with them, take +1 momentum on a hit.'] },
+      { name: 'Wyrmling Drake', sub: 'Companion', maxHealth: 3, text: 'A young drake, no larger than a dog—for now.', abilities: [
+        'Fiery: When you Strike alongside your drake, it breathes fire. Inflict +1 harm on a hit.',
+        'Fearsome: When you Compel by threat with your drake beside you, add +1.',
+        'Growing: When you Ascend, your drake grows. Add +1 to its health track (to a maximum of +5), and it may carry you in flight once per session.'] },
+      { name: 'Spirit Guide', sub: 'Companion', maxHealth: 2, text: 'An ancestor, a saint, or a spirit of the land who walks with you, unseen by others.', abilities: [
+        'Counsel: When you Gather Information or Ask the Oracle, you may ask your spirit. Add +1, or roll twice on the oracle and choose.',
+        'Ward: When you Endure Stress from the dead or the supernatural, add +1.',
+        'Beyond: When you Face Death or Face Desolation, your spirit guides you. Add +1, and on a hit, take +1 momentum.'] }
     ],
-    spell: [
-      { name: 'Far Sight', sub: 'Spell', todo: true }, { name: 'Meteor Swarm', sub: 'Spell · needs tier 3', todo: true }
-    ]
+    spell: []
   };
 
-  /* ---------- artifacts printed in chapter 5 ---------- */
+  /* Populate the Spell catalog from every spell card in Appendix A */
+  (function buildSpellCatalog() {
+    const classForPath = {};
+    Object.keys(OB.CLASS_INFO).forEach(cls => {
+      Object.keys(OB.CLASS_INFO[cls].paths).forEach(p => { classForPath[p] = cls; });
+    });
+    const tierNum = { Foundation: 1, Specialization: 2, Mastery: 3 };
+    Object.keys(OB.PATH_CARDS).forEach(path => {
+      const cls = classForPath[path] || '';
+      OB.PATH_CARDS[path].forEach((k, idx) => {
+        if (!k.spell) return;
+        OB.CATALOG.spell.push({
+          name: k.name,
+          cls,
+          path,
+          tier: tierNum[k.tier] || (idx + 1),
+          pathIdx: idx,
+          tierName: k.tier,
+          source: k.source || 'Magic',
+          sub: path + ' · ' + k.tier + ' · Spell' + (k.source ? ' · ' + k.source : ''),
+          text: cls + ' (' + path + ') · Tier ' + (tierNum[k.tier] || (idx + 1)) + ' (' + k.tier + ')',
+          abilities: k.abilities
+        });
+      });
+    });
+  })();
+
+  /* Magic traditions each class normally draws from (Chapter 5) */
+  OB.CLASS_TRADITIONS = {
+    Guardian: ['Divine magic'],
+    Ranger: ['Wild magic'],
+    Rogue: ['Shadow magic'],
+    Wizard: ['Learned magic'],
+    Sorcerer: ['Blood magic'],
+    Cleric: ['Divine magic'],
+    Druid: ['Wild magic'],
+    Bard: ['Song magic'],
+    Warlock: ['Pact magic']
+  };
+
+  /* ---------- all 5 artifacts printed in Appendix A ---------- */
   OB.ARTIFACTS = [
     { name: 'Emberbrand', sub: 'Artifact', text: 'An old sword of the Dawn Empire. Its blade burns at a word.', abilities: [
       'When you Strike or Clash with the burning blade, inflict +1 harm on a hit. Undead and creatures of cold take +1 more.',
@@ -200,7 +610,19 @@
     { name: 'Crown of the Drowned King', sub: 'Artifact', text: 'A crown of black pearl and coral. It is always wet.', abilities: [
       'When you Gather Information from the dead or Compel the restless dead, roll +presence and add +1.',
       'When you wear the crown under water, you breathe as a fish and see as clearly as by day.',
-      'When you spend 2 focus and command the drowned dead to rise, a troublesome host serves you for one scene. Then Endure Stress (2 stress) as the crown whispers.'] }
+      'When you spend 2 focus and command the drowned dead to rise, a troublesome host serves you for one scene. Then Endure Stress (2 stress) as the crown whispers.'] },
+    { name: 'Staff of the Archmage', sub: 'Artifact', text: 'A staff of black wood, crowned by a captured star.', abilities: [
+      'When you use a spell, you may spend 1 focus from the staff instead of your own. The staff holds 3 focus. It recharges when you Make Camp.',
+      'When you Cast a Spell, add +1.',
+      'When you break the staff, Strike or Battle +insight with all of its stored power. Inflict 5 harm on a hit. The staff is destroyed.'] },
+    { name: 'Cloak of the Hidden Moon', sub: 'Artifact', text: 'A gray cloak blessed by Veyla. It shimmers like moonlight on water.', abilities: [
+      'When you Face Danger to hide or sneak, add +1.',
+      'When you spend 1 focus, you can become invisible until you attack or the scene ends.',
+      'When you Ask the Oracle about luck, chance, or fortune, roll twice and choose.'] },
+    { name: 'Ring of Warding', sub: 'Artifact', text: 'A ring of three intertwined metals.', abilities: [
+      'When you Endure Harm from a magical source, suffer 1 less harm.',
+      'When you Face Danger against a spell, a curse, or a ward, add +1.',
+      'When you spend 2 focus, the ring raises a shield. All allies near you suffer 1 less harm until the scene ends.'] }
   ];
 
   /* ---------- magic reference (chapter 5) ---------- */
