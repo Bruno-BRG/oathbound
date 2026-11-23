@@ -8,7 +8,7 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
-  OB.BUILD = '2026-11-22.b';
+  OB.BUILD = '2026-11-22.c';
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
   ];
@@ -401,93 +401,6 @@
     },
 
     /* assets */
-    newGear() {
-      const c = OB.char();
-      const catalog = OB.EQUIPMENT;
-      OB.modal({
-        title: 'Add equipment', ok: 'Add',
-        html: `<label class="lbl">Item<select id="ge-preset">
-          ${Object.entries(OB.GEAR_SLOTS).map(([slot, label]) => `<optgroup label="${label}">${catalog.filter(item => item.slot === slot).map(item => `<option value="${item.id}">${E(item.name)}</option>`).join('')}</optgroup>`).join('')}
-          <option value="custom">Custom item…</option></select></label>
-          <p id="ge-preview" class="am-prev"></p>
-          <div id="ge-custom" hidden>
-            <label class="lbl">Name<input id="ge-name" type="text"></label>
-            <label class="lbl">Slot<select id="ge-slot">${Object.entries(OB.GEAR_SLOTS).map(([key, label]) => `<option value="${key}">${label}</option>`).join('')}</select></label>
-            <label class="lbl" id="ge-harm-label">Base harm<select id="ge-harm"><option value="2">2 · Deadly</option><option value="1">1 · Simple</option></select></label>
-            <label class="lbl">Description and effect<textarea id="ge-text" rows="3"></textarea></label>
-            <label class="lbl" id="ge-use-label">Use limit<select id="ge-use"><option value="">No tracked limit</option><option value="scene">Once per scene</option><option value="camp">Once per camp</option></select></label>
-            <label class="lbl">Focus per use<input type="number" id="ge-focus" value="0" min="0" max="6" step="1"></label>
-            <label class="chk" id="ge-attune-label"><input type="checkbox" id="ge-attune"><span class="box"></span><span>Requires attunement</span></label>
-          </div>`,
-        onOpen: m => {
-          const sync = () => {
-            const item = catalog.find(x => x.id === $m('#ge-preset', m).value);
-            const slot = $m('#ge-slot', m).value;
-            $m('#ge-custom', m).hidden = !!item;
-            $m('#ge-preview', m).hidden = !item;
-            $m('#ge-preview', m).textContent = item ? OB.gearMeta(item) + ' — ' + item.text : '';
-            $m('#ge-harm-label', m).hidden = slot !== 'weapon';
-            $m('#ge-use-label', m).hidden = slot === 'consumable';
-            $m('#ge-attune-label', m).hidden = slot === 'consumable';
-          };
-          m.addEventListener('change', sync);
-          sync();
-        },
-        onOk: m => {
-          const value = key => $m('#ge-' + key, m).value;
-          const preset = catalog.find(x => x.id === value('preset'));
-          const slot = value('slot');
-          const item = preset || {
-            name: value('name').trim(), text: value('text').trim(), slot, harm: +value('harm'),
-            use: slot === 'consumable' ? 'once' : value('use'),
-            focus: OB.clamp(Math.trunc(+value('focus')) || 0, 0, 6),
-            attune: slot !== 'consumable' && $m('#ge-attune', m).checked
-          };
-          if (!item.name) { OB.toast('Give it a name.'); return false; }
-          c.equipment.push({ ...item, id: OB.uid('g'), equipped: false, attuned: false, used: false });
-          OB.ui.open['sec:equipment'] = true;
-          OB.save(); OB.refresh();
-        }
-      });
-    },
-    equipGear(el) {
-      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
-      if (!item || item.slot === 'consumable') return;
-      if (!item.equipped && c.equipment.filter(g => g.slot === item.slot && g.equipped).length >= OB.gearLimit(item.slot)) {
-        return OB.toast('Unequip an item in that slot first.');
-      }
-      item.equipped = !item.equipped;
-      OB.save(); OB.refresh();
-    },
-    attuneGear(el) {
-      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
-      if (!item?.attune) return;
-      if (item.attuned) { item.attuned = false; OB.save(); OB.refresh(); return; }
-      if (c.equipment.filter(g => g.attuned).length >= 2) return OB.toast('Release an attunement first.');
-      OB.confirm('Did you succeed on Attune to an Artifact for this item?', 'Mark attuned', () => {
-        item.attuned = true; OB.save(); OB.refresh();
-      });
-    },
-    useGear(el) {
-      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
-      if (!item || OB.gearBlock(c, item)) return;
-      if (item.focus) OB.applyEffects({ focus: -item.focus });
-      if (item.use === 'once') c.equipment = c.equipment.filter(g => g !== item);
-      else if (item.use) item.used = true;
-      OB.logNote(`Used ${item.name}. ${item.text || ''}`);
-      OB.toast(`Used ${item.name}. Apply its effect at the table.`);
-    },
-    resetGear(el) {
-      OB.char().equipment.forEach(item => { if (item.use === el.dataset.period) item.used = false; });
-      OB.save(); OB.refresh();
-    },
-    delGear(el) {
-      const c = OB.char(), item = c.equipment.find(g => g.id === cid(el));
-      if (!item) return;
-      OB.confirm(`Remove “${item.name}” from inventory?`, 'Remove', () => {
-        c.equipment = c.equipment.filter(g => g !== item); OB.save(); OB.refresh();
-      });
-    },
     newAsset() { assetModal(); },
     addPathCard(el) {
       const c = OB.char(); const { cls, path } = el.dataset; const i = +el.dataset.i;
@@ -647,16 +560,11 @@
     markFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); OB.markTrack(el.dataset.track); e.applied = e.applied || {}; e.applied[el.dataset.k] = true; OB.save(); OB.refresh(); },
     harmFromRoll(el) {
       const c = OB.char(); const e = c.log.find(x => x.id === cid(el));
-      const h = OB.harmFor(e, e.weaponHarm || OB.baseHarm(c), e.bonusHarm || 0);
+      const h = OB.harmFor(e, c.weaponHarm || 2, e.bonusHarm || 0);
       OB.markTrack(el.dataset.track, h); e.applied = e.applied || {}; e.applied[el.dataset.k] = true; OB.save(); OB.refresh();
     },
     bonusHarm(el) { const e = OB.char().log.find(x => x.id === cid(el)); e.bonusHarm = OB.clamp((e.bonusHarm || 0) + (+el.dataset.d), -2, 6); OB.save(); OB.refresh(); },
-    weapon(el) {
-      const c = OB.char(), entry = c.log.find(e => e.id === cid(el));
-      if (entry) entry.weaponHarm = +el.dataset.h;
-      else c.weaponHarm = +el.dataset.h;
-      OB.save(); OB.refresh();
-    },
+    weapon(el) { OB.char().weaponHarm = +el.dataset.h; OB.save(); OB.refresh(); },
     bondFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); bondModal(() => { e.applied = e.applied || {}; e.applied.bond = true; OB.save(); OB.refresh(); }); },
     completeFromRoll(el) { const e = OB.char().log.find(x => x.id === cid(el)); OB.completeTrack(e.trackId, e.hit); e.applied = e.applied || {}; e.applied.done = true; OB.save(); OB.refresh(); },
     recommit(el) {

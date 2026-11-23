@@ -1050,15 +1050,6 @@ select option, select optgroup { background-color: var(--page); color: var(--tex
 .lin-tag { font-size: .68rem; padding: 1px 6px; border-radius: 4px; background: var(--field); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
 .lin-tag.on { background: rgba(var(--goldrgb), .18); border-color: rgba(var(--goldrgb), .4); color: var(--accent); }
 
-.gear-toolbar { display: grid; gap: 8px; margin-bottom: 8px; }
-.gear-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 10px; margin-bottom: 14px; }
-.gear-item { display: grid; align-content: start; gap: 6px; padding: 12px; border-radius: 4px; background: var(--slab); border: 1px solid var(--line2); }
-.gear-item h4, .acc.gsec .gear-item h4 { margin: 0; }
-.gear-item p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.gear-rules dt { font-weight: 700; margin-bottom: 2px; }
-.gear-rules dd { margin: 0 0 12px; }
-.modal #ge-custom [hidden] { display: none; }
-
 @media (max-width: 600px) {
   .vitals { grid-template-columns: minmax(0, 1fr); }
   .vrow .cells.strip { min-width: 0; }

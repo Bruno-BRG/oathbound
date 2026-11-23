@@ -59,7 +59,6 @@
       kind: 'action', label: o.label, move: o.move || null,
       statName: o.statName || (o.statKey ? OB.statLabel(c, o.statKey) : ''),
       statVal, add, d6, c1, c2, mom, cancelled, score, match: c1 === c2,
-      weaponHarm: c.equipment.some(item => item.slot === 'weapon' && item.equipped) ? OB.baseHarm(c) : undefined,
       extras: o.extras || [], note: o.note || null, harm: o.harm || null, trackId: o.trackId || null
     };
     e.hit = level(score, c1, c2, null);

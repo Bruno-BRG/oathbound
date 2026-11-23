@@ -58,7 +58,7 @@
       <h4>Debilities</h4>
       ${table(['Type', 'Debility', 'How it works'], OB.DEBILITIES.map(d => [d.type, d.name, d.how]))}
       <h4>Supply and companions</h4>
-      <p><strong>Supply</strong> is your preparedness: ammo, food, water, and general upkeep. It runs 0 to +5. You and your allies share one supply value. At 0, all make the <em>Out of Supply</em> move.</p>
+      <p><strong>Supply</strong> covers ordinary gear and provisions, including ammo, food, water, and general upkeep. Use <strong>Gear &amp; Notes</strong> to record anything that matters to your character or the story. You and your allies share one Supply value from 0 to +5. At 0, all make the <em>Out of Supply</em> move.</p>
       <p><strong>Companions</strong> are NPC assets. If you roll a 1 on your action die when you use a companion ability, make the companion the focus of any negative outcome. When a companion is hurt, make <em>Companion Endure Harm</em>.</p>
       <h4>Bonds and oracles</h4>
       <p><strong>Bonds</strong> link you to people and communities. Make <em>Forge a Bond</em> to add one (1 tick). Bonds give +1 on certain moves and decide how your story ends when you <em>Write Your Epilogue</em>.</p>
@@ -90,13 +90,6 @@
       <p><strong>Minor items</strong> need no attunement and have no asset. They give a narrative advantage. <strong>Consumables</strong> are used once. <strong>Artifacts</strong> are magic items of real power, represented by asset cards. To use their full power, you must <em>Attune to an Artifact</em>.</p>
       ${table(['Consumable', 'Effect'], OB.CONSUMABLES)}
       <div class="row gap wrap"><button class="btn small" data-act="rollOracle" data-key="treasure">Roll Treasure</button><button class="btn small" data-act="rollOracle" data-key="magicitem">Roll Magic Item</button>${OB.ARTIFACTS.map((a, i) => `<button class="btn small ghost" data-act="addArtifact" data-i="${i}">Add artifact: ${E(a.name)}</button>`).join('')}</div>`;
-  }
-
-  function equipment() {
-    return `<dl class="gear-rules">${OB.GEAR_RULES.map(([heading, rule]) => `<dt>${E(heading)}</dt><dd>${E(rule)}</dd>`).join('')}</dl>
-      <h4>Example equipment</h4>
-      <div class="gear-items">${OB.EQUIPMENT.map(item => `<article class="gear-item"><div><h4>${E(item.name)}</h4>
-        <span class="muted small">${E(OB.gearMeta(item))}</span></div><p>${E(item.text)}</p></article>`).join('')}</div>`;
   }
 
   function amarin() {
@@ -169,7 +162,6 @@
     ['mech', 'Core rules', 'adventure', 'Rolls, momentum, tracks, harm'],
     ['start', 'Getting started', 'quest', 'Create a character and a campaign'],
     ['magic', 'Magic', 'magic', 'Spells, rituals, gods, items'],
-    ['equipment', 'Equipment', 'adventure', 'Loadout, attunement, and item effects'],
     ['amarin', 'The Amarin', 'relationship', 'Regions and travel'],
     ['lineage', 'Lineage and class', 'suffer', 'Heritage, upbringing, class, tiers'],
     ['credits', 'Credits', 'fate', 'License']
@@ -178,7 +170,7 @@
   OB.v.guide = function () {
     const c = OB.char();
     const body = {
-      combat: combat(), mech: mechanics(), start: gettingStarted(c), magic: magic(), equipment: equipment(), amarin: amarin(), lineage: lineage(),
+      combat: combat(), mech: mechanics(), start: gettingStarted(c), magic: magic(), amarin: amarin(), lineage: lineage(),
       credits: `<p><strong>Design and writing:</strong> Bruno Rocha Guimarães. <strong>Based on:</strong> Ironsworn by Shawn Tomkin (ironswornrpg.com).</p>
           <p>The text of Oathbound is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license (CC BY-NC-SA 4.0). You may share and adapt it for non-commercial use if you give credit and share alike.</p>
           <p>Some ideas for classes, heritages, upbringings, and paths draw inspiration from Daggerheart by Darrington Press. This sheet is not affiliated with or endorsed by Darrington Press, Critical Role, or Shawn Tomkin.</p>`

@@ -62,7 +62,6 @@
       initiative: false,
       truths: {},                // world truths: {key: {pick, custom}}
       weaponHarm: 2,
-      equipment: [],
       bonds: [],                 // [{id, name, note}]
       tracks: [],                // [{id, kind, name, rank, ticks, done, notes, bg}]
       assets: [],                // [{id, type, name, sub, tier, text, abilities:[{text,on}], health, maxHealth}]
@@ -106,16 +105,12 @@
     out.bonds.forEach(b => { b.id = b.id || OB.uid('b'); });
     out.journal.forEach(j => { j.id = j.id || OB.uid('j'); });
     out.focus = OB.clamp(parseInt(out.focus, 10) || 0, 0, OB.maxFocus(out));
-    const slots = {};
-    let attuned = 0;
-    out.equipment = (Array.isArray(out.equipment) ? out.equipment : []).filter(item =>
-      item && Object.hasOwn(OB.GEAR_SLOTS, item.slot)).map(item => {
-      const equipped = item.slot !== 'consumable' && !!item.equipped && (slots[item.slot] || 0) < OB.gearLimit(item.slot);
-      if (equipped) slots[item.slot] = (slots[item.slot] || 0) + 1;
-      const bound = item.slot !== 'consumable' && !!item.attune && !!item.attuned && attuned < 2;
-      if (bound) attuned++;
-      return { ...item, id: OB.uid('g'), equipped, attuned: bound, harm: item.harm === 1 ? 1 : 2, focus: OB.clamp(Number(item.focus) || 0, 0, 6) };
-    });
+    if (Array.isArray(out.equipment) && out.equipment.length) {
+      const items = out.equipment.filter(item => typeof item?.name === 'string' && item.name.trim())
+        .map(item => '- ' + item.name + (typeof item.text === 'string' && item.text ? ': ' + item.text : ''));
+      if (items.length) out.gear = [out.gear, 'Inventory from an earlier version:\n' + items.join('\n')].filter(Boolean).join('\n\n');
+    }
+    delete out.equipment;
     return out;
   };
 

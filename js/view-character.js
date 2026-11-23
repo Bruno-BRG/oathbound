@@ -96,38 +96,8 @@
   }
 
   /* ---------- gear & notes ---------- */
-  function equipment(c) {
-    const count = slot => c.equipment.filter(item => item.slot === slot && item.equipped).length;
-    const loadout = Object.entries(OB.GEAR_SLOTS).filter(([slot]) => slot !== 'consumable').map(([slot, label]) =>
-      `<span>${label} ${count(slot)}/${OB.gearLimit(slot)}</span>`).join('');
-    const items = c.equipment.map(item => {
-      const block = OB.gearBlock(c, item);
-      const tracksUse = item.use || item.focus;
-      return `<article class="gear-item">
-        <div><h4>${E(item.name)}</h4><div class="muted small">${E(OB.gearMeta(item))}</div></div>
-        <p>${E(item.text)}</p>
-        <div class="row gap wrap">
-          ${item.slot !== 'consumable' ? `<button class="btn sm" type="button" data-act="equipGear" data-id="${item.id}" aria-label="${item.equipped ? 'Unequip' : 'Equip'} ${E(item.name)}">${item.equipped ? 'Unequip' : 'Equip'}</button>` : ''}
-          ${item.attune ? `<button class="btn sm ghost" type="button" data-act="attuneGear" data-id="${item.id}" aria-label="${item.attuned ? 'Release' : 'Attune'} ${E(item.name)}">${item.attuned ? 'Release bond' : 'Mark attuned'}</button>` : ''}
-          ${tracksUse ? `<button class="btn sm" type="button" data-act="useGear" data-id="${item.id}" ${block ? 'disabled' : ''} aria-label="Use ${E(item.name)}">Mark use</button>` : ''}
-          <button class="btn sm ghost" type="button" data-act="delGear" data-id="${item.id}" aria-label="Remove ${E(item.name)}">Remove</button>
-        </div>
-        ${tracksUse && block ? `<div class="muted small">${E(block)}</div>` : ''}
-      </article>`;
-    }).join('');
-    const reset = (period, label) => `<button class="btn sm ghost" type="button" data-act="resetGear" data-period="${period}" ${c.equipment.some(item => item.used && item.use === period) ? '' : 'disabled'}>${label}</button>`;
-    const body = `<div class="gear-toolbar">
-        <div class="row gap wrap"><button class="btn sm primary" type="button" data-act="newGear">${OB.icon('plus')} Add item</button>
-          ${reset('scene', 'Start new scene')}${reset('camp', 'Finish Make Camp')}</div>
-        <div class="row gap wrap muted small" aria-label="Equipment slots">${loadout}<span>Attuned ${c.equipment.filter(item => item.attuned).length}/2</span></div>
-      </div>
-      <p class="muted small">Supply covers ordinary provisions. Mark uses here, then apply the listed bonus or adjust the incoming harm or stress in the move.</p>
-      <div class="gear-items">${items || '<p class="empty">No items yet. Add something you carry.</p>'}</div>`;
-    return OB.band('equipment', 'Equipment', '', body);
-  }
-
   function gear(c) {
-    return `${equipment(c)}<section class="flat">
+    return `<section class="flat">
       <label class="fl">Gear &amp; Notes${F.area('gear', c.gear, { rows: 3, ph: 'Gear & Notes', label: 'Gear and notes' })}</label>
       <details class="more" data-key="more-notes" ${OB.ui.open['more-notes'] ? 'open' : ''}><summary>More notes</summary>
         <label class="fl">Background and flaws${F.area('background', c.background, { rows: 3, label: 'Background' })}</label>

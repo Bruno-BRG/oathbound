@@ -51,12 +51,12 @@
     }
     if (e.kind === 'action' && m.bondOnHit && hit) out.push(`<button type="button" class="fx" data-act="bondFromRoll" data-id="${e.id}" ${applied.bond ? 'disabled' : ''}>${applied.bond ? '✓ ' : ''}Add bond (+1 tick)</button>`);
     if (e.kind === 'action' && m.harm && hit) {
-      const base = e.weaponHarm || OB.baseHarm(c);
+      const base = c.weaponHarm || 2;
       const bonus = e.bonusHarm || 0;
       const h = OB.harmFor(e, base, bonus);
       out.push(`<div class="harm-box"><span>Harm: <b>${h}</b> <small class="muted">(${base === 2 ? 'deadly weapon 2' : 'unarmed/simple 1'}${e.move === 'Strike' && e.hit === 2 ? ' +1 strong' : ''}${bonus ? ' ' + OB.sgn(bonus) + ' bonus' : ''})</small></span>
         <button type="button" class="step" data-act="bonusHarm" data-id="${e.id}" data-d="-1" aria-label="Less bonus harm">−</button><button type="button" class="step" data-act="bonusHarm" data-id="${e.id}" data-d="1" aria-label="More bonus harm">+</button>
-        <button type="button" class="chip ${base === 2 ? 'on' : ''}" data-act="weapon" data-id="${e.id}" data-h="${base === 2 ? 1 : 2}" title="Change base harm for this attack">${base === 2 ? 'Deadly weapon' : 'Unarmed / simple'}</button></div>`);
+        <button type="button" class="chip ${base === 2 ? 'on' : ''}" data-act="weapon" data-h="${base === 2 ? 1 : 2}">${base === 2 ? 'Deadly weapon' : 'Unarmed / simple'}</button></div>`);
       open('fight').forEach(t => { const k = 'hf' + t.id; out.push(`<button type="button" class="fx" data-act="harmFromRoll" data-id="${e.id}" data-track="${t.id}" data-k="${k}" ${applied[k] ? 'disabled' : ''}>${applied[k] ? '✓ ' : ''}Inflict ${h} on ${E(t.name || 'foe')}</button>`); });
     }
     if (e.kind === 'progress' && e.trackId && e.trackId !== 'bonds') {
