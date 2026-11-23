@@ -42,7 +42,7 @@
         const k = m.special;
         out.push(`<div class="rollrow"><label class="inl">${k === 'harm' ? 'Harm' : 'Stress'} <input type="number" min="0" max="12" value="1" id="en-${k}" class="mini" aria-label="Amount"></label>
           <button type="button" class="rollbtn" data-act="endure" data-kind="${k}"><span>Endure ${k === 'harm' ? 'Harm' : 'Stress'}</span></button></div>
-          <p class="muted small">Applies −${k === 'harm' ? 'health' : 'spirit'} first, passes overflow to momentum, then rolls the higher of ${k === 'harm' ? 'health or strength' : 'presence or spirit'}.</p>`);
+          <p class="muted small">Applies −${k === 'harm' ? 'health' : 'spirit'} first, passes overflow to momentum, then rolls the higher of ${k === 'harm' ? 'health or heart' : 'presence or spirit'}.</p>`);
         break;
       }
       case 'companion': {

@@ -52,7 +52,7 @@
       campaignName: '', campaignNotes: '', region: 'The Crownlands', factions: [], hexes: {},
       heritage: '', upbringing: '', cls: '', path: '',
       extraPaths: [],            // paths gained by Ascend: [{cls, path}]
-      stats: { agility: 0, strength: 0, finesse: 0, presence: 0, insight: 0 },
+      stats: { agility: 0, strength: 0, heart: 0, presence: 0, insight: 0 },
       ascStats: 0,               // +1 stat boosts taken through Ascend
       health: 5, spirit: 5, supply: 5, focus: 0, momentum: 2,
       focusBonus: 0,             // +max focus from Ascend (max +6 total)
@@ -74,7 +74,11 @@
   OB.normalize = function (c) {
     const base = OB.newChar();
     const out = Object.assign({}, base, c || {});
-    out.stats = Object.assign({}, base.stats, (c && c.stats) || {});
+    const saved = (c && c.stats) || {};
+    out.stats = Object.assign({}, base.stats, saved);
+    // Finesse was replaced by Heart (constitution). Existing sheets keep their value in the new slot.
+    if (saved.heart === undefined && saved.finesse !== undefined) out.stats.heart = saved.finesse;
+    delete out.stats.finesse;
     out.deb = Object.assign({}, (c && c.deb) || {});
     ['extraPaths', 'bonds', 'tracks', 'assets', 'journal', 'log', 'factions'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
     if (!out.hexes || typeof out.hexes !== 'object') out.hexes = {};
@@ -91,6 +95,9 @@
     out.assets.forEach(a => {
       a.id = a.id || OB.uid('a');
       if (!Array.isArray(a.abilities)) a.abilities = [];
+      const retired = text => typeof text === 'string' ? text.replace(/\+finesse\b/gi, '+agility') : text;
+      a.text = retired(a.text);
+      a.abilities.forEach(ability => { ability.text = retired(ability.text); });
       const pathCard = a.type === 'path' ? OB.PATH_CARDS[a.path]?.[a.pathIdx] : null;
       const catalog = OB.CATALOG[a.type] || [];
       const preset = pathCard || catalog.find(card => card.name === a.name);
@@ -136,13 +143,13 @@
 
   OB.statValue = function (c, key) {
     if (key === 'casting') return c.stats[OB.castStat(c) || 'insight'] || 0;
-    if (key === 'lowInsStr') return Math.min(c.stats.insight, c.stats.strength);
+    if (key === 'lowInsHrt') return Math.min(c.stats.insight, c.stats.heart);
     if (key === 'supply' || key === 'health' || key === 'spirit') return c[key];
     return c.stats[key] || 0;
   };
   OB.statLabel = function (c, key) {
     if (key === 'casting') { const s = OB.castStat(c); return s ? OB.cap(s) + ' (casting)' : 'Insight (no casting stat)'; }
-    if (key === 'lowInsStr') return 'Insight/Strength (lower)';
+    if (key === 'lowInsHrt') return 'Insight/Heart (lower)';
     return OB.cap(key);
   };
 

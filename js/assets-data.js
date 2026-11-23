@@ -50,7 +50,7 @@
     Rogue: {
       blurb: 'Locks open for you. Guards look the other way. Your enemies never see the knife until it is too late.',
       abilities: [
-        ['Sneak Attack', 'When you Strike a foe who is unaware of you or distracted by an ally, you may roll +finesse. On a hit, inflict +1 harm.'],
+        ['Sneak Attack', 'When you Strike a foe who is unaware of you or distracted by an ally, you may roll +agility. On a hit, inflict +1 harm.'],
         ['Slippery', 'When you Face Danger to evade, escape, or hide, add +1. On a strong hit, take +1 momentum.'],
         ['Tricks of the Trade', 'When you Secure an Advantage by deception, theft, or sabotage, you may spend 1 focus after rolling to count a weak hit as a strong hit.']
       ],
@@ -232,7 +232,7 @@
         'When you Strike an unaware or helpless foe, inflict +2 harm on a hit.',
         'When you Gather Information about a target you have sworn to kill, add +1.'] },
       { tier: 'Specialization', name: 'Shadow Step', spell: true, source: 'Shadow magic', abilities: [
-        'When you spend 1 focus to step into one shadow and out of another nearby, Face Danger +finesse to escape or reach a place. Add +1.',
+        'When you spend 1 focus to step into one shadow and out of another nearby, Face Danger +agility to escape or reach a place. Add +1.',
         'When you shadow step behind a foe and Strike, add +1 and inflict +1 harm on a hit.',
         'When you Make Camp or Seek Haven, you may suffer -1 supply to prepare a poison. Your next Strike with a poisoned weapon inflicts +1 harm on a hit.'] },
       { tier: 'Mastery', name: 'Unseen Death', spell: true, source: 'Shadow magic', abilities: [
@@ -246,7 +246,7 @@
         'When you Face Danger by talking your way out of trouble, roll +presence and add +1.',
         'When you Gather Information by gossip and rumor, add +1.'] },
       { tier: 'Specialization', name: 'Master of Disguise', abilities: [
-        'When you Secure an Advantage by taking on a disguise or a false identity, roll +finesse and add +1. On a hit, you can move freely among your enemies for a scene.',
+        'When you Secure an Advantage by taking on a disguise or a false identity, roll +presence and add +1. On a hit, you can move freely among your enemies for a scene.',
         'When you Face Danger to pick a pocket, a lock, or a trap, add +1.',
         'When you Resupply by stealing or swindling, add +1.'] },
       { tier: 'Mastery', name: 'The Grand Scheme', abilities: [
@@ -496,7 +496,7 @@
         'When you Face Danger to deflect a blow or a missile, add +1.',
         'When you Strike and score a hit, you may suffer -1 momentum to attack a second foe nearby. Inflict your harm on both.'] },
       { name: 'Duelist', sub: 'Talent · single foe with a light blade', text: 'If you fight a single foe with a light blade…', abilities: [
-        'When you Clash, you may roll +finesse. On a strong hit, take +1 momentum.',
+        'When you Clash, you may roll +agility. On a strong hit, take +1 momentum.',
         'When you Call a Duel, add +1. When you choose a boast, take +1 additional momentum.',
         'When you Secure an Advantage by taunting a foe into a reckless attack, roll +presence. On a hit, your next Strike against them inflicts +1 harm.'] },
       { name: 'Shieldwall', sub: 'Talent · needs a shield at the ready', text: 'If you wield a shield…', abilities: [

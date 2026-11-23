@@ -16,10 +16,10 @@ window.OB = window.OB || {};
 
   /* ---------- core constants ---------- */
   OB.STATS = [
-    { key: 'agility',  name: 'Agility',  short: 'Agi', desc: 'Speed, balance, reflexes, and ranged combat.' },
-    { key: 'strength', name: 'Strength', short: 'Str', desc: 'Power, endurance, toughness, and close combat.' },
-    { key: 'finesse',  name: 'Finesse',  short: 'Fin', desc: 'Stealth, precision, deception, and sleight of hand.' },
-    { key: 'presence', name: 'Presence', short: 'Pre', desc: 'Courage, willpower, charm, and leadership.' },
+    { key: 'agility',  name: 'Agility',  short: 'Agi', desc: 'Speed, balance, reflexes, stealth, precise handiwork, and ranged combat.' },
+    { key: 'strength', name: 'Strength', short: 'Str', desc: 'Physical power, force, and close combat.' },
+    { key: 'heart',    name: 'Heart',    short: 'Hrt', desc: 'Constitution: endurance, toughness, resilience, and vitality.' },
+    { key: 'presence', name: 'Presence', short: 'Pre', desc: 'Courage, willpower, charm, deception, and leadership.' },
     { key: 'insight',  name: 'Insight',  short: 'Ins', desc: 'Knowledge, instinct, observation, and understanding of magic.' }
   ];
 
@@ -58,7 +58,7 @@ window.OB = window.OB || {};
     { key: 'Human', tags: 'bold, restless, many-faced', ability: ['Stubborn Hope', 'When you Swear an Oath, add +1. When you Forsake Your Oath, take +1 spirit after you clear it.'], legacy: ['Indomitable', 'When you Face Death or Face Desolation, add +1. On a hit, take +1 momentum.'] },
     { key: 'Elf', tags: 'long-lived, keen-eyed, patient', ability: ['Long Memory', 'When you Gather Information about something old—a ruin, a fallen kingdom, a forgotten name—add +1. You see well by starlight.'], legacy: ['Timeless Grace', 'When you Face Danger +agility and score a strong hit, take +1 additional momentum.'] },
     { key: 'Dwarf', tags: 'stout, stubborn, stone-wise', ability: ['Stone-Sure', 'When you Face Danger or Endure Harm against poison, a crushing weight, or the perils of deep places, add +1.'], legacy: ['Unbreakable', 'Once per fight, when you would mark wounded, you may instead suffer -2 momentum.'] },
-    { key: 'Halfling', tags: 'small, warm-hearted, lucky', ability: ['Lucky', 'When you roll a 1 on your action die, you may reroll it. You must take the second result.'], legacy: ['Small and Unseen', 'When you Face Danger +finesse to hide or slip past a threat, add +1 and take +1 momentum on a hit.'] },
+    { key: 'Halfling', tags: 'small, warm-hearted, lucky', ability: ['Lucky', 'When you roll a 1 on your action die, you may reroll it. You must take the second result.'], legacy: ['Small and Unseen', 'When you Face Danger +agility to hide or slip past a threat, add +1 and take +1 momentum on a hit.'] },
     { key: 'Gnome', tags: 'curious, clever, fey-touched', ability: ['Tinker’s Wit', 'When you Secure an Advantage by building a device, tool, or trap from what you carry, roll +insight and add +1.'], legacy: ['Illusory Double', 'When you Face Danger to avoid an attack, you may spend 1 focus to create a fleeting image of yourself. If you do, add +2.'] },
     { key: 'Orc', tags: 'strong, proud, fierce', ability: ['Relentless', 'When you Endure Harm while at 0 health, add +1. On a hit, take +1 momentum.'], legacy: ['Blood Fury', 'When you Strike or Clash while at +2 health or less, inflict +1 harm on a hit.'] },
     { key: 'Goblin', tags: 'quick, wily, survivors', ability: ['Scrounger', 'When you Resupply by scavenging in a ruin, a town, or a battlefield, add +1.'], legacy: ['Nimble Escape', 'When you Face Danger to flee, slip free of a hold, or squeeze through a narrow gap, add +1 and take +1 momentum on a hit.'] },
@@ -82,23 +82,23 @@ window.OB = window.OB || {};
   OB.UPBRINGING = Object.fromEntries(OB.UPBRINGINGS.map(u => [u.key, u]));
 
   OB.CLASSES = [
-    { key: 'Warrior',  paths: ['Champion', 'Warlord'],         focus: 2, casts: null,       suggest: 'Str 3, Agi 2, Pre 2, Ins 1, Fin 1' },
-    { key: 'Guardian', paths: ['Sentinel', 'Avenger'],         focus: 3, casts: 'presence', suggest: 'Str 3, Pre 2, Ins 2, Agi 1, Fin 1' },
-    { key: 'Ranger',   paths: ['Beastmaster', 'Deadeye'],      focus: 3, casts: 'insight',  suggest: 'Agi 3, Ins 2, Str 2, Fin 1, Pre 1' },
-    { key: 'Rogue',    paths: ['Shadowblade', 'Trickster'],    focus: 2, casts: 'finesse',  suggest: 'Fin 3, Agi 2, Ins 2, Pre 1, Str 1' },
-    { key: 'Wizard',   paths: ['Evoker', 'Seer'],              focus: 5, casts: 'insight',  suggest: 'Ins 3, Fin 2, Pre 2, Agi 1, Str 1' },
-    { key: 'Sorcerer', paths: ['Stormblood', 'Wildsoul'],      focus: 5, casts: 'presence', suggest: 'Pre 3, Ins 2, Agi 2, Str 1, Fin 1' },
-    { key: 'Cleric',   paths: ['Lightbringer', 'Gravekeeper'], focus: 4, casts: 'presence', suggest: 'Pre 3, Ins 2, Str 2, Agi 1, Fin 1' },
-    { key: 'Druid',    paths: ['Shapeshifter', 'Greenwarden'], focus: 4, casts: 'presence', suggest: 'Ins 3, Pre 2, Agi 2, Str 1, Fin 1' },
-    { key: 'Bard',     paths: ['Warsinger', 'Enchanter'],      focus: 4, casts: 'presence', suggest: 'Pre 3, Fin 2, Agi 2, Ins 1, Str 1' },
-    { key: 'Warlock',  paths: ['Fiendbound', 'Feybound'],      focus: 5, casts: 'presence', suggest: 'Pre 3, Fin 2, Ins 2, Agi 1, Str 1' }
+    { key: 'Warrior',  paths: ['Champion', 'Warlord'],         focus: 2, casts: null,       suggest: 'Str 3, Hrt 2, Agi 2, Pre 1, Ins 1' },
+    { key: 'Guardian', paths: ['Sentinel', 'Avenger'],         focus: 3, casts: 'presence', suggest: 'Str 3, Hrt 2, Pre 2, Ins 1, Agi 1' },
+    { key: 'Ranger',   paths: ['Beastmaster', 'Deadeye'],      focus: 3, casts: 'insight',  suggest: 'Agi 3, Ins 2, Hrt 2, Str 1, Pre 1' },
+    { key: 'Rogue',    paths: ['Shadowblade', 'Trickster'],    focus: 2, casts: 'agility',  suggest: 'Agi 3, Ins 2, Pre 2, Hrt 1, Str 1' },
+    { key: 'Wizard',   paths: ['Evoker', 'Seer'],              focus: 5, casts: 'insight',  suggest: 'Ins 3, Pre 2, Hrt 2, Agi 1, Str 1' },
+    { key: 'Sorcerer', paths: ['Stormblood', 'Wildsoul'],      focus: 5, casts: 'presence', suggest: 'Pre 3, Hrt 2, Ins 2, Agi 1, Str 1' },
+    { key: 'Cleric',   paths: ['Lightbringer', 'Gravekeeper'], focus: 4, casts: 'presence', suggest: 'Pre 3, Ins 2, Str 2, Hrt 1, Agi 1' },
+    { key: 'Druid',    paths: ['Shapeshifter', 'Greenwarden'], focus: 4, casts: 'presence', suggest: 'Ins 3, Pre 2, Hrt 2, Agi 1, Str 1' },
+    { key: 'Bard',     paths: ['Warsinger', 'Enchanter'],      focus: 4, casts: 'presence', suggest: 'Pre 3, Agi 2, Ins 2, Hrt 1, Str 1' },
+    { key: 'Warlock',  paths: ['Fiendbound', 'Feybound'],      focus: 5, casts: 'presence', suggest: 'Pre 3, Hrt 2, Ins 2, Agi 1, Str 1' }
   ];
   OB.CLASS = Object.fromEntries(OB.CLASSES.map(c => [c.key, c]));
   OB.PATH_TIERS = ['Foundation', 'Specialization', 'Mastery'];
 
   /* ---------- semi-random setup ---------- */
   OB.SEMI = {
-    stat: R([[20, 'agility'], [40, 'strength'], [60, 'finesse'], [80, 'presence'], [100, 'insight']]),
+    stat: R([[20, 'agility'], [40, 'strength'], [60, 'heart'], [80, 'presence'], [100, 'insight']]),
     // each row: [max, heritage, upbringing, class]  (class null => roll twice / again)
     rows: [
       [8,  'Human',        'City',     'Warrior'],
@@ -157,10 +157,10 @@ window.OB = window.OB || {};
          effect keys: momentum, health, spirit, supply, focus  (+/- numbers)
      ====================================================================== */
   const ALLSTATS = [
-    { label: 'Agility',  stat: 'agility',  hint: 'speed, mobility, a shot at range' },
-    { label: 'Strength', stat: 'strength', hint: 'force, endurance, a show of might' },
-    { label: 'Finesse',  stat: 'finesse',  hint: 'stealth, deception, precise handwork' },
-    { label: 'Presence', stat: 'presence', hint: 'charm, courage, leadership' },
+    { label: 'Agility',  stat: 'agility',  hint: 'speed, stealth, a shot at range' },
+    { label: 'Strength', stat: 'strength', hint: 'force, a show of might' },
+    { label: 'Heart',    stat: 'heart',    hint: 'endurance, toughness, resisting pain, poison, or exhaustion' },
+    { label: 'Presence', stat: 'presence', hint: 'charm, deception, courage, leadership' },
     { label: 'Insight',  stat: 'insight',  hint: 'knowledge, perception, intuition' }
   ];
 
@@ -201,8 +201,8 @@ window.OB = window.OB || {};
       fx: { strong: [{ momentum: 2 }], weak: [{ momentum: 1 }] } },
 
     { cat: 'adventure', name: 'Heal',
-      trigger: 'you treat an injury or ailment, roll +insight. If you are mending your own wounds, roll +insight or +strength, whichever is lower.',
-      roll: [{ label: 'Insight', stat: 'insight' }, { label: 'Own wounds (lower of insight / strength)', stat: 'lowInsStr' }],
+      trigger: 'you treat an injury or ailment, roll +insight. If you are mending your own wounds, roll +insight or +heart, whichever is lower.',
+      roll: [{ label: 'Insight', stat: 'insight' }, { label: 'Own wounds (lower of insight / heart)', stat: 'lowInsHrt' }],
       strong: 'Your care is helpful. If you (or the ally under your care) have the wounded condition, you may clear it. Then, take or give up to +2 health.',
       weak: 'As above, but you must suffer -1 supply or -1 momentum (your choice).',
       miss: 'Your aid is ineffective. [[Pay the Price]].',
@@ -242,9 +242,8 @@ window.OB = window.OB || {};
     { cat: 'relationship', name: 'Compel',
       trigger: 'you attempt to persuade someone to do something, envision your approach and roll.',
       roll: [
-        { label: 'Presence — charm, pacify, barter, convince (+1 if bond)', stat: 'presence' },
-        { label: 'Strength — threaten or incite', stat: 'strength' },
-        { label: 'Finesse — lie or swindle', stat: 'finesse' }
+        { label: 'Presence — charm, pacify, barter, convince, lie, or swindle (+1 if bond)', stat: 'presence' },
+        { label: 'Strength — threaten or incite', stat: 'strength' }
       ],
       strong: 'They’ll do what you want or share what they know. Take +1 momentum. If you use this exchange to [[Gather Information]], make that move now and add +1.',
       weak: 'As above, but they ask something of you in return. Envision what they want ([[Ask the Oracle]] if unsure).',
@@ -294,7 +293,7 @@ window.OB = window.OB || {};
       trigger: 'you enter into combat, first set the rank of each of your foes.\n- Troublesome foe: 3 progress per harm; inflicts 1 harm.\n- Dangerous foe: 2 progress per harm; inflicts 2 harm.\n- Formidable foe: 1 progress per harm; inflicts 3 harm.\n- Extreme foe: 2 ticks per harm; inflicts 4 harm.\n- Epic foe: 1 tick per harm; inflicts 5 harm.\n\nThen, roll to determine who is in control.',
       roll: [
         { label: 'Presence — facing off against your foe', stat: 'presence' },
-        { label: 'Finesse — unaware foe / striking without warning', stat: 'finesse' },
+        { label: 'Agility — unaware foe / striking without warning', stat: 'agility' },
         { label: 'Insight — ambushed', stat: 'insight' }
       ],
       track: 'fight',
@@ -331,10 +330,10 @@ window.OB = window.OB || {};
     { cat: 'combat', name: 'Battle',
       trigger: 'you fight a battle, and it happens in a blur, envision your objective and roll.',
       roll: [
-        { label: 'Agility — range, speed, terrain', stat: 'agility' },
+        { label: 'Agility — range, speed, terrain, trickery', stat: 'agility' },
         { label: 'Presence — courage, allies, companions', stat: 'presence' },
         { label: 'Strength — overpower in close', stat: 'strength' },
-        { label: 'Finesse — trickery', stat: 'finesse' },
+        { label: 'Heart — endurance, holding the line', stat: 'heart' },
         { label: 'Insight — careful tactics', stat: 'insight' }
       ],
       strong: 'You achieve your objective unconditionally. Take +2 momentum.',
@@ -378,7 +377,7 @@ window.OB = window.OB || {};
 
     /* ---------------- SUFFER ---------------- */
     { cat: 'suffer', name: 'Endure Harm', special: 'harm',
-      trigger: 'you face physical damage, suffer -health equal to your foe’s rank or as appropriate to the situation. If your health is 0, suffer -momentum equal to any remaining -health. Then, roll +health or +strength, whichever is higher.',
+      trigger: 'you face physical damage, suffer -health equal to your foe’s rank or as appropriate to the situation. If your health is 0, suffer -momentum equal to any remaining -health. Then, roll +health or +heart, whichever is higher.',
       strong: 'Choose one.\n- **Shake it off:** If your health is greater than 0, suffer -1 momentum in exchange for +1 health.\n- **Embrace the pain:** Take +1 momentum.',
       weak: 'You press on.',
       miss: 'Also suffer -1 momentum. If you are at 0 health, you must mark wounded or maimed (if currently unmarked) or roll on the following table.',
@@ -579,7 +578,7 @@ window.OB = window.OB || {};
     ['Choose one heritage and an upbringing.', 'Record the starting and legacy abilities under your heritage.'],
     ['Choose a class and one of its two paths.', 'Take the class card and the Foundation card of the path. Note your max focus.'],
     ['Choose a name.', ''],
-    ['Set your stats.', 'Arrange +3, +2, +2, +1, +1 across agility, strength, finesse, presence, and insight, in any order.'],
+    ['Set your stats.', 'Arrange +3, +2, +2, +1, +1 across agility, strength, heart, presence, and insight, in any order.'],
     ['Set your tracks.', 'Health, spirit, and supply start at +5. Focus starts at your max focus.'],
     ['Set momentum.', 'Momentum +2, max momentum +10, momentum reset +2.'],
     ['Mark background bonds.', 'Up to three, one tick each.'],

@@ -27,7 +27,7 @@
       <h4>Semi-random setup</h4>
       <p>To give fate a heavier hand, roll for your best stat and for your heritage, upbringing, and class. Roll 1d6 for your path: 1–3 the first path, 4–6 the second. Assign +3 to the result and place +2, +2, +1, +1 on the other stats as you like.</p>
       <div class="two-tables">
-        ${table(['D100', 'Best stat (+3)'], [['1–20', 'Agility: nimble, fast, and precise'], ['21–40', 'Strength: strong, forceful, and enduring'], ['41–60', 'Finesse: cunning, stealthy, and precise'], ['61–80', 'Presence: willful, courageous, and charming'], ['81–100', 'Insight: smart, perceptive, and wise']])}
+        ${table(['D100', 'Best stat (+3)'], [['1–20', 'Agility: nimble, fast, and precise'], ['21–40', 'Strength: strong, forceful, and enduring'], ['41–60', 'Heart: tough, resilient, and enduring'], ['61–80', 'Presence: willful, courageous, and charming'], ['81–100', 'Insight: smart, perceptive, and wise']])}
         ${table(['D100', 'Heritage', 'Upbringing', 'Class'], (() => { let prev = 0; return OB.SEMI.rows.map(r => { const rg = (prev + 1 === r[0] ? r[0] : (prev + 1) + '–' + r[0]); prev = r[0]; return [rg, r[1], r[2] || 'Roll again', r[3] || (r[1] === 'Forgeborn' ? 'Roll again' : 'Roll twice; choose')]; }); })())}
       </div>
       <div class="row gap"><button class="btn" data-act="semiRandom">Apply semi-random setup to the current character</button></div>`;
@@ -129,7 +129,7 @@
     return `
       <p class="lead">Combat is a loop: one side has <strong>initiative</strong>. That side attacks. A hit marks progress on the foe. When you are ready, you finish the fight with a progress roll.</p>
       <ol class="csteps">
-        ${step(1, 'Enter the Fray', md('Rank each foe, then roll to see who has initiative: **+presence** (face to face), **+finesse** (they are unaware), **+insight** (you are ambushed). Strong hit: +2 momentum and initiative. Weak hit: +2 momentum *or* initiative. Miss: foe has initiative, and you [[Pay the Price]].'))}
+        ${step(1, 'Enter the Fray', md('Rank each foe, then roll to see who has initiative: **+presence** (face to face), **+agility** (they are unaware), **+insight** (you are ambushed). Strong hit: +2 momentum and initiative. Weak hit: +2 momentum *or* initiative. Miss: foe has initiative, and you [[Pay the Price]].'))}
         ${step(2, 'You have initiative: Strike', md('Roll **+strength** (close) or **+agility** (ranged). Strong hit: inflict your harm +1 and keep initiative. Weak hit: inflict your harm, lose initiative. Miss: [[Pay the Price]], foe has initiative.'))}
         ${step(3, 'Foe has initiative: Clash', md('Roll **+strength** (close) or **+agility** (ranged). Strong hit: inflict your harm, take initiative, and choose +1 momentum or +1 harm. Weak hit: inflict your harm, then [[Pay the Price]]. Miss: you are outmatched, [[Pay the Price]].'))}
         ${step(4, 'Mark progress on the foe', md('Each harm you inflict marks progress on the foe track, by rank (table below). When the foe hits you, [[Endure Harm]] for the harm its rank inflicts.'))}

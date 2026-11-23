@@ -175,7 +175,7 @@
     const loss = Math.min(c[tk], amount), over = amount - loss;
     const fx = {}; fx[tk] = -loss; if (over > 0) fx.momentum = -over;
     OB.applyEffects(fx);
-    const other = kind === 'harm' ? 'strength' : 'presence';
+    const other = kind === 'harm' ? 'heart' : 'presence';
     const v1 = c[tk], v2 = c.stats[other];
     const useTrack = v1 >= v2;
     const moveName = kind === 'harm' ? 'Endure Harm' : 'Endure Stress';
@@ -448,7 +448,7 @@
     const info = OB.CLASS[cls];
     const path = info.paths[rint(6) <= 3 ? 0 : 1];
     // stats: best = +3, then 2,2,1,1 in the class's suggested order
-    const abbr = { Str: 'strength', Agi: 'agility', Fin: 'finesse', Pre: 'presence', Ins: 'insight' };
+    const abbr = { Str: 'strength', Agi: 'agility', Hrt: 'heart', Pre: 'presence', Ins: 'insight' };
     const order = info.suggest.split(',').map(s => abbr[s.trim().split(' ')[0]]).filter(k => k !== best);
     const vals = [2, 2, 1, 1];
     OB.STATS.forEach(s => { c.stats[s.key] = 0; });
