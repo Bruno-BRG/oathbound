@@ -185,7 +185,6 @@
           ${OB.rulebookLinks()}`
     };
     return `<div class="guide">
-      ${OB.banner('ranger', 'Guide', 'Waystone: the rules you use most at the table.')}
       ${quick()}
       <div class="gnav" role="navigation" aria-label="Guide sections">${SECTIONS.map(x => `<button type="button" class="gtile cat-${x[2]}" data-act="guideGo" data-g="${x[0]}"><b>${x[1]}</b><span>${x[3]}</span></button>`).join('')}</div>
       <div class="acc-stack">${SECTIONS.map(x => OB.details('g:' + x[0], `<h3>${x[1]}</h3>`, body[x[0]], x[0] === 'combat').replace('class="acc"', `class="acc gsec cat-${x[2]}" id="g-${x[0]}"`)).join('')}</div>

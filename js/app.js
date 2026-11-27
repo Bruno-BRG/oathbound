@@ -10,7 +10,7 @@
 
   OB.BUILD = '2026-11-27.hf3';
   const TABS = [
-    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
+    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
   ];
   const SECTIONS = ['dice', 'oracles', 'moves', 'journal'];
 
@@ -481,19 +481,6 @@
       if (!st || st.pick == null) return;
       c.journal.unshift({ id: OB.uid('j'), date: new Date().toLocaleDateString(), title: t.name + ' — quest starter', text: t.opts[st.pick][1] });
       OB.save(); OB.toast('Added to the journal.'); OB.refresh();
-    },
-    hexSel(el) {
-      const c = OB.char(); const k = el.dataset.k;
-      c.hexes[k] = c.hexes[k] || { name: '', control: '', note: '' };
-      OB.ui.hex = k; OB.save(); OB.refresh();
-    },
-    hexClear(el) { const c = OB.char(); const k = el.dataset.k; delete c.hexes[k]; OB.ui.hex = null; OB.save(); OB.refresh(); },
-    hexRollPlace() {
-      const c = OB.char(); const k = OB.ui.hex; if (!k) return;
-      c.hexes[k] = c.hexes[k] || { name: '', control: '', note: '' };
-      const e = OB.rollOracle('location');
-      c.hexes[k].name = e.parts[0].text;
-      OB.save(); OB.refresh();
     },
     regionNote(el) {
       const info = OB.REGION_INFO[el.dataset.name]; const c = OB.char();

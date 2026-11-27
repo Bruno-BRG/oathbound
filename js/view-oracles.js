@@ -80,10 +80,8 @@
   };
 
   OB.foesPanel = function () {
-    const c = OB.char();
     const q = OB.ui.foeFilter.toLowerCase().trim();
     const flat = OB.FOES.flatMap(g => g.list.map(f => f[0]));
-    const fights = c.tracks.filter(t => t.kind === 'fight' && !t.done);
     return `      <article class="card">
         ${OB.sectionHead('Fighting a foe')}
         <div class="rank-table">
@@ -98,10 +96,6 @@
         </ul>
         <div class="row gap wrap"><button type="button" class="btn small" data-act="rollOracle" data-key="combat">Combat Action oracle</button><button type="button" class="btn small" data-act="rollOracle" data-key="challenge">Challenge Rank oracle</button></div>
       </article>
-      ${fights.length ? `<article class="card">${OB.sectionHead('In the fray', `<span class="pill">${fights.length}</span>`)}
-        ${fights.map(t => `<div class="fray-row"><div class="fr-name"><strong>${E(t.name || 'Foe')}</strong> ${OB.badgeRank(t.rank)}</div>${OB.trackBoxes(t.ticks)}
-          <div class="row gap"><input type="number" min="1" max="12" value="2" id="harm-${t.id}" class="mini" aria-label="Harm"><button type="button" class="btn small" data-act="harmFoe" data-id="${t.id}">Inflict harm</button><button type="button" class="btn small primary" data-act="rollTrack" data-id="${t.id}" data-move="End the Fight">End the Fight</button></div></div>`).join('')}
-      </article>` : ''}
       <article class="card">
         ${OB.sectionHead('Pack builder')}
         <div class="row gap wrap">

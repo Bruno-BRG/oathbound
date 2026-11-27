@@ -15,9 +15,8 @@ Segue a estrutura do Stargazer (Iron Journal), com visual próprio:
 ### Abas
 - **Campaign:** nome da campanha, as 8 *Truths* do Amarin (escolha, d100 ou texto próprio), facções e notas.
 - **Character:** identidade, vida/espírito/suprimento/foco/momentum em faixas, stats (clique no número para rolar), impactos, notas, bonds, XP e assets.
-- **Challenges:** vows e progresso (journeys, fights, rituals). Clique nas caixas para marcar. Foes fica aqui também.
-- **Mapa (Amarin):** aba **Amarin**, com o mapa ilustrado do livro (`assets/map.jpg`) e a grade hexagonal. Clique num hexágono para nomear, marcar facção e anotar. Para desativar, tire `['amarin', 'Amarin']` de `TABS` no `js/app.js`.
-- **Guide:** resumo das regras e tabelas de referência.
+- **Challenges:** vows e progresso (journeys, rituals, other). Os inimigos ficam todos na seção **Foes**, cada um com a sua única trilha de progresso — não há duas listas para o mesmo combate.
+- **Guide:** resumo das regras e tabelas de referência. A seção *The Amarin* traz o mapa ilustrado do livro (`assets/map.jpg`), só para consulta. Não há mapa customizável nem outras imagens no site.
 
 ## PDFs dos livros
 
@@ -57,14 +56,14 @@ js/icons.js           ícones em SVG
 js/ui.js              componentes (faixas, bandas, modal)
 js/view-character.js  aba Character
 js/view-challenges.js aba Challenges
-js/view-campaign.js   abas Campaign e Amarin (mapa hexagonal)
+js/view-campaign.js   aba Campaign (truths, facções, notas)
 js/view-guide.js      aba Guide
 js/view-moves.js      moves na gaveta
 js/view-oracles.js    oráculos e foes
 js/view-log.js        dados e log de rolagens
 js/drawer.js          diário na gaveta
 js/app.js             casca do app, menu, eventos e ações
-assets/               arte e fontes
+assets/               mapa do livro, ícones, fontes e o three.js
 ```
 
 ## Completar as path cards
@@ -115,3 +114,4 @@ Se a tela antiga continuar depois do deploy, use **Redeploy com "Force rebuild"*
 - **Logs:** Deployments → último deploy (erro de build) e Logs do container (erro do nginx).
 - **Healthcheck:** o container responde `ok` em `/healthz`. Se o deploy fica "unhealthy", desligue o healthcheck do Coolify e veja o log.
 - **Domínio:** em *Domains* use `https://oathbound.brunorocha.dev.br` e confira o DNS (registro A para o IP do VPS).
+
