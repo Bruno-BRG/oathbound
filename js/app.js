@@ -8,7 +8,7 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
-  OB.BUILD = '2026-11-27.hf';
+  OB.BUILD = '2026-11-27.hf2';
   const TABS = [
     ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
   ];

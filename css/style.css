@@ -898,6 +898,7 @@ details.move .pill { background: var(--mc); color: #11161e; border: 0; }
 
 /* ---------- GUIDE: flat cards, same radius and tokens as the sheet ---------- */
 .guide { display: grid; gap: 16px; }
+.gmap { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line2); box-shadow: 0 22px 44px -30px #000; }
 .gq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
 .gq { background: var(--slab); padding: 12px 14px; border-top: 3px solid var(--accent); }
 .gq h4 { margin: 0 0 4px; font-family: var(--head); font-size: 1.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #fff; } .gq h4::after { display: none; }

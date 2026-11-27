@@ -94,6 +94,7 @@
 
   function amarin() {
     return `
+      <img class="gmap" src="assets/map.jpg?v=2026-11-27.hf2" alt="Map of the Amarin" loading="lazy">
       <p>The Amarin is a wide land between two seas. Three hundred years ago it was the heart of the Dawn Empire, ruled by mage-kings who built roads of white stone, towers that touched the clouds, and vaults that still hold their secrets. Then, in a single night, the Empire fell. Its capital was torn apart by a storm of wild magic. Its armies turned on each other. Its gods went silent for a generation.</p>
       <h4>Travel</h4>
       <p>Make <em>Undertake a Journey</em> when you cross dangerous or unknown lands. Choose a rank from the fiction. Do not measure distance exactly; travel moves at the speed of the story. An imperial road, a known coast by ship, or a trusted guide can lower the rank. A ruin of the Empire, a fey-touched forest, or a war-torn border can raise it.</p>
