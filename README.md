@@ -10,14 +10,25 @@ Segue a estrutura do Stargazer (Iron Journal), com visual próprio:
 - **Cabeçalho:** menu de campanhas (≡), busca (Ctrl+K), dados e diário.
 - **Abas:** Campaign · nome do personagem · Challenges · Guide.
 - **Gaveta da direita:** Dice (rolagens e log) · Oracles · Moves · Journal. Pode ser recolhida com o botão redondo.
-- **Menu da esquerda:** lista de campanhas, exportar e carregar JSON, exportar diário (.md), duplicar, imprimir, cores de destaque.
+- **Menu da esquerda:** lista de campanhas, exportar e carregar JSON, exportar diário (.md), baixar os PDFs dos livros, duplicar, imprimir, cores de destaque.
 
 ### Abas
 - **Campaign:** nome da campanha, as 8 *Truths* do Amarin (escolha, d100 ou texto próprio), facções e notas.
 - **Character:** identidade, vida/espírito/suprimento/foco/momentum em faixas, stats (clique no número para rolar), impactos, notas, bonds, XP e assets.
 - **Challenges:** vows e progresso (journeys, fights, rituals). Clique nas caixas para marcar. Foes fica aqui também.
-- **Mapa (Amarin):** desativado. O código (`OB.v.amarin` em `js/view-campaign.js`) e a imagem `assets/map.jpg` continuam no repositório. Para reativar, ponha `['amarin', 'Amarin']` em `TABS` no `js/app.js`.
+- **Mapa (Amarin):** aba **Amarin**, com o mapa ilustrado do livro (`assets/map.jpg`) e a grade hexagonal. Clique num hexágono para nomear, marcar facção e anotar. Para desativar, tire `['amarin', 'Amarin']` de `TABS` no `js/app.js`.
 - **Guide:** resumo das regras e tabelas de referência.
+
+## PDFs dos livros
+
+Os dois livros em PDF ficam em `output/pdf/` e são servidos pelo próprio site:
+
+- `output/pdf/Oathbound_Core_Rulebook.pdf` — Core Rulebook (classes, paths, heranças, upbringings, Amarin).
+- `output/pdf/Waystone_Oathbound_Reference.pdf` — Waystone Reference (oráculos, foes, turning points).
+
+No app, os links ficam na aba **Guide** (seção *Rulebooks* e no fim de *Credits*) e no menu **≡ → Rulebook PDFs**.
+
+No deploy, a pasta `output/` precisa ir junto: o `Dockerfile` copia `output/` para a imagem e o `nginx.conf` serve `/output/pdf/` como `application/pdf` (sem isso o nginx devolve o `index.html` e o download quebra). Na Vercel, como é site estático, os arquivos do repositório já são servidos no mesmo caminho.
 
 ## Salvar e carregar
 

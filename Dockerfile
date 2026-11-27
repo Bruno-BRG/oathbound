@@ -6,6 +6,7 @@ COPY index.html manifest.webmanifest sw.js /usr/share/nginx/html/
 COPY css /usr/share/nginx/html/css
 COPY js /usr/share/nginx/html/js
 COPY assets /usr/share/nginx/html/assets
+COPY output /usr/share/nginx/html/output
 
 # Cache version: set VERSION in sw.js together with OB.BUILD in js/app.js on every release.
 

@@ -158,6 +158,7 @@
   }
 
   const SECTIONS = [
+    ['rulebooks', 'Rulebooks', 'fate', 'Download the PDFs'],
     ['combat', 'Combat', 'combat', 'How a fight works, step by step'],
     ['mech', 'Core rules', 'adventure', 'Rolls, momentum, tracks, harm'],
     ['start', 'Getting started', 'quest', 'Create a character and a campaign'],
@@ -170,10 +171,17 @@
   OB.v.guide = function () {
     const c = OB.char();
     const body = {
+      rulebooks: `<p>The whole system in PDF, served from this site. Open it online or download a copy to read offline and print.</p>
+        ${OB.rulebookLinks()}
+        <ul class="plain"><li><strong>Core Rulebook</strong> — classes, paths, heritages, upbringings, moves and the Amarin setting.</li>
+        <li><strong>Waystone Reference</strong> — oracle tables, foes, turning points and setting notes.</li></ul>
+        <p class="muted small">The PDFs are also linked from the menu (≡) under <em>Rulebook PDFs</em>.</p>`,
       combat: combat(), mech: mechanics(), start: gettingStarted(c), magic: magic(), amarin: amarin(), lineage: lineage(),
       credits: `<p><strong>Design and writing:</strong> Bruno Rocha Guimarães. <strong>Based on:</strong> Ironsworn by Shawn Tomkin (ironswornrpg.com).</p>
           <p>The text of Oathbound is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license (CC BY-NC-SA 4.0). You may share and adapt it for non-commercial use if you give credit and share alike.</p>
-          <p>Some ideas for classes, heritages, upbringings, and paths draw inspiration from Daggerheart by Darrington Press. This sheet is not affiliated with or endorsed by Darrington Press, Critical Role, or Shawn Tomkin.</p>`
+          <p>Some ideas for classes, heritages, upbringings, and paths draw inspiration from Daggerheart by Darrington Press. This sheet is not affiliated with or endorsed by Darrington Press, Critical Role, or Shawn Tomkin.</p>
+          <h4>Source PDFs</h4>
+          ${OB.rulebookLinks()}`
     };
     return `<div class="guide">
       ${quick()}

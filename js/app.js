@@ -8,9 +8,9 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const WIDE = () => window.matchMedia('(min-width: 1024px)').matches;
 
-  OB.BUILD = '2026-11-22.d';
+  OB.BUILD = '2026-11-27.hf';
   const TABS = [
-    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['guide', 'Guide']
+    ['campaign', 'Campaign'], ['character', null], ['challenges', 'Challenges'], ['amarin', 'Amarin'], ['guide', 'Guide']
   ];
   const SECTIONS = ['dice', 'oracles', 'moves', 'journal'];
 
@@ -65,6 +65,7 @@
       <hr>
       ${item('exportAll', 'download', 'Export All Campaigns')}
       ${item('exportJournal', 'download', 'Export Journal')}
+      ${item('rulebooks', 'book', 'Rulebook PDFs')}
       <hr>
       ${OB.canInstall ? item('installApp', 'download', 'Install App') : ''}
       ${item('diceStyle', 'dice', 'Dice Style (3D)')}
@@ -610,6 +611,15 @@
       OB.toast('Journal exported.');
     },
     importFile() { setMenu(false); $('#file-in').click(); },
+    rulebooks() {
+      setMenu(false);
+      OB.modal({
+        title: 'Rulebook PDFs', ok: false,
+        html: `<p class="muted">The system in PDF, straight from this site. Click to open or download.</p>` +
+          OB.rulebookLinks().replace(/class="btn sm"/g, 'class="btn"') +
+          '<ul class="plain">' + OB.RULEBOOKS.map(r => `<li><strong>${E(r.title)}</strong> — ${E(r.note)}</li>`).join('') + '</ul>'
+      });
+    },
     printSheet() { setMenu(false); OB.ui.tab = 'character'; OB.refresh(); setTimeout(() => window.print(), 60); }
   };
 

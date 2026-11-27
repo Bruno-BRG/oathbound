@@ -12,6 +12,25 @@
   OB.slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   OB.sgn = n => (n > 0 ? '+' + n : String(n));
 
+  /* Source books in PDF. Served from the site itself (/output/pdf/...). */
+  OB.RULEBOOKS = [
+    {
+      href: 'output/pdf/Oathbound_Core_Rulebook.pdf',
+      title: 'Core Rulebook',
+      note: 'Classes, paths, heritages, upbringings, moves and the Amarin setting. The whole book.'
+    },
+    {
+      href: 'output/pdf/Waystone_Oathbound_Reference.pdf',
+      title: 'Waystone Reference',
+      note: 'Oracle tables for the Waystone, with foes, turning points and setting notes.'
+    }
+  ];
+  OB.rulebookLinks = function (label) {
+    return '<div class="row gap wrap">' + OB.RULEBOOKS.map(r =>
+      `<a class="btn sm" href="${r.href}" target="_blank" rel="noopener" download>${OB.icon('download')}${OB.esc(label || ('Download the ' + r.title))}</a>`
+    ).join('') + '</div>';
+  };
+
   // unbiased random integer 1..n using the browser's crypto source
   OB.rint = function (n) {
     const a = new Uint32Array(1);
