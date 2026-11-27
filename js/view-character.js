@@ -234,6 +234,7 @@
 
   OB.v.character = function () {
     const c = OB.char();
-    return `${identity(c)}${vitals(c)}${stats(c)}${gear(c)}${assets(c)}${bonds(c)}${impacts(c)}${xp(c)}${creation(c)}`;
+    return `${OB.banner('cover', c.name || 'Character', 'Swear an oath. See it fulfilled. No matter the cost.')}
+      ${identity(c)}${vitals(c)}${stats(c)}${gear(c)}${assets(c)}${bonds(c)}${impacts(c)}${xp(c)}${creation(c)}`;
   };
 })(window.OB);

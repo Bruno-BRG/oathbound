@@ -70,7 +70,8 @@
     const rules = `<table class="rank-table"><thead><tr><th>Rank</th><th>Mark progress</th><th>Foe: per harm</th><th>Foe inflicts</th></tr></thead><tbody>
       ${OB.RANKS.map(r => `<tr><td>${OB.badgeRank(r.key)}</td><td>${r.mark}</td><td>${r.foe}</td><td>${r.harm} harm · −${r.suffer}</td></tr>`).join('')}</tbody></table>
       <p class="muted small">Bonds always mark 1 tick. Progress moves count only full boxes. You cannot burn momentum on a progress roll, and negative momentum does not apply.</p>`;
-    return `${OB.band('vows', 'Vows', `<button type="button" class="band-btn" data-act="newTrack" data-kind="oath" aria-label="New vow" title="New vow">${OB.icon('plus')}</button>`, list(c, 'oath', vows))}
+    return `${OB.banner('oath', 'Challenges', 'Vows, journeys, fights and rituals. Mark progress on the tracks.')}
+      ${OB.band('vows', 'Vows', `<button type="button" class="band-btn" data-act="newTrack" data-kind="oath" aria-label="New vow" title="New vow">${OB.icon('plus')}</button>`, list(c, 'oath', vows))}
       ${OB.band('progress', 'Progress', '', progress)}
       ${OB.band('foes', 'Foes', '', OB.foesPanel ? OB.foesPanel() : '', false)}
       ${OB.band('rules', 'Progress rules', '', rules, false)}`;
